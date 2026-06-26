@@ -130,6 +130,9 @@ body { font-family:'Vazirmatn','Outfit',Tahoma,sans-serif; color:var(--text); ba
 .slot-pts { font-size:12px; font-weight:600; color:var(--muted); margin-inline-start:8px; }
 .tourney-slot .ko-select { width:100%; padding:12px 14px; font-size:15px; }
 /* آمار (فاز ۳) */
+.stats-picker { display:flex; align-items:center; gap:10px; justify-content:center; margin-bottom:16px; font-weight:700; }
+.stats-picker label { color:var(--muted); font-size:14px; }
+.stats-picker .ko-select { padding:8px 14px; }
 .stats-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:14px; margin-bottom:16px; }
 .stat-card { padding:18px; text-align:center; }
 .stat-val { font-size:28px; font-weight:800; color:var(--accent); }
