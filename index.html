@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
   <link rel="stylesheet" href="style.css">
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   <script>
     (function(){ var t = localStorage.getItem('theme'); if(t) document.documentElement.setAttribute('data-theme', t); })();
   </script>
@@ -72,7 +73,10 @@
       <p class="muted">یک حساب جدید بساز</p>
       <div class="field"><input id="reg-username" placeholder="نام کاربری" autocomplete="username"></div>
       <div class="field"><input id="reg-email" type="email" placeholder="ایمیل" autocomplete="email"></div>
-      <div class="field"><input id="reg-password" type="password" placeholder="رمز عبور (حداقل ۴ کاراکتر)" autocomplete="new-password" onkeydown="if(event.key==='Enter')register()"></div>
+      <div class="field"><input id="reg-password" type="password" placeholder="رمز عبور (حداقل ۴ کاراکتر)" autocomplete="new-password"></div>
+      <input id="reg-nickname" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true" placeholder="نام مستعار">
+      <div class="field captcha-field"><span id="captcha-q" class="captcha-q">… + … = ؟</span><input id="reg-captcha" type="number" inputmode="numeric" placeholder="پاسخ" onkeydown="if(event.key==='Enter')register()"></div>
+      <div class="cf-turnstile" data-sitekey="YOUR_TURNSTILE_SITEKEY"></div>
       <button class="btn-primary btn-block" onclick="register()">ساختن حساب</button>
       <p id="reg-error" class="error-text"></p>
       <div class="auth-links"><a onclick="showAuth('login')">قبلاً ثبت‌نام کرده‌ام — ورود</a></div>
@@ -91,6 +95,7 @@
 
   <main id="app-view" class="app-view" style="display:none">
     <section id="tab-matches" class="tab-panel">
+      <div id="comp-bar" class="comp-bar"></div>
       <div id="matches" class="matches-grid"></div>
     </section>
 
@@ -128,6 +133,6 @@
 
   <div id="toast" class="toast"></div>
 
-  <script src="app.js?v=8"></script>
+  <script src="app.js?v=9"></script>
 </body>
 </html>
