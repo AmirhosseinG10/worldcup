@@ -21,19 +21,34 @@ body { font-family:'Vazirmatn','Outfit',Tahoma,sans-serif; color:var(--text); ba
 /* هدر چسبان (برند + نوار تب‌ها) */
 .site-header { position:sticky; top:0; z-index:40; transition:background var(--t),box-shadow var(--t),backdrop-filter var(--t); }
 .site-header.scrolled { background:color-mix(in srgb,var(--bg2) 86%,transparent); backdrop-filter:blur(16px); box-shadow:0 6px 24px rgba(0,0,0,.3); }
-.topbar { max-width:var(--maxw); margin:0 auto; padding:14px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; transition:padding var(--t); }
+.topbar { max-width:var(--maxw); margin:0 auto; padding:14px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:nowrap; transition:padding var(--t); }
 .site-header.scrolled .topbar { padding:9px 16px; }
-.brand { display:flex; align-items:center; gap:12px; }
+.brand { display:flex; align-items:center; gap:12px; min-width:0; }
+.brand > div { min-width:0; }
 .brand-logo { font-size:30px; line-height:1; display:inline-flex; color:var(--primary); filter:drop-shadow(0 4px 8px rgba(0,0,0,.3)); }
-.brand h1 { font-size:20px; font-weight:800; }
-.brand small { color:var(--muted); }
+.brand h1 { font-size:20px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.brand small { color:var(--muted); white-space:nowrap; }
 .topbar-actions { display:flex; align-items:center; gap:14px; }
-/* سوییچ تم */
-.theme-switch { display:flex; gap:8px; padding:6px; background:var(--card); border:1px solid var(--card-brd); border-radius:999px; }
-.swatch { width:22px; height:22px; border-radius:50%; cursor:pointer; border:2px solid transparent; background:var(--dot); transition:transform var(--t),border-color var(--t); }
-.swatch:hover { transform:scale(1.15); }
-.swatch.active { border-color:var(--text); transform:scale(1.15); }
-.user-chip { display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--card-brd); padding:6px 6px 6px 14px; border-radius:999px; font-weight:600; }
+/* اکشن‌های هدر: آیکون تنظیمات و پروفایل + منوهای کشویی */
+.topbar-actions { display:flex; align-items:center; gap:10px; }
+.menu-wrap { position:relative; }
+.icon-btn { width:42px; height:42px; border-radius:50%; border:1px solid var(--card-brd); background:var(--card); color:var(--text); cursor:pointer; display:inline-flex; align-items:center; justify-content:center; font-size:19px; transition:transform var(--t),border-color var(--t),background var(--t); }
+.icon-btn:hover { border-color:var(--primary); transform:translateY(-1px); }
+.avatar-btn { padding:0; overflow:hidden; border-color:color-mix(in srgb,var(--primary) 45%,var(--card-brd)); }
+.avatar-btn .chip-avatar { width:100%; height:100%; border-radius:50%; font-size:20px; }
+.popover { position:absolute; top:calc(100% + 10px); inset-inline-end:0; min-width:210px; background:var(--bg2); border:1px solid var(--card-brd); border-radius:16px; box-shadow:var(--shadow); padding:14px; opacity:0; visibility:hidden; transform:translateY(-8px); transition:opacity var(--t),transform var(--t),visibility var(--t); z-index:60; }
+.popover.open { opacity:1; visibility:visible; transform:translateY(0); }
+.popover-title { font-size:13px; font-weight:700; color:var(--muted); margin-bottom:12px; }
+.popover-user { display:flex; align-items:center; gap:10px; padding-bottom:12px; margin-bottom:8px; border-bottom:1px solid var(--card-brd); font-family:'Outfit','Vazirmatn',Tahoma,sans-serif; }
+.menu-item { display:flex; align-items:center; gap:10px; width:100%; text-align:start; background:transparent; border:none; color:var(--text); font:inherit; font-weight:600; padding:10px 8px; border-radius:10px; cursor:pointer; transition:background var(--t); }
+.menu-item:hover { background:var(--card); }
+.menu-item.danger { color:#fb7185; }
+.menu-item i { font-size:17px; }
+/* سوییچ تم (داخل منوی تنظیمات) */
+.theme-switch { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; place-items:center; }
+.swatch { width:30px; height:30px; border-radius:50%; cursor:pointer; border:2px solid transparent; background:var(--dot); box-shadow:0 2px 8px rgba(0,0,0,.25); transition:transform var(--t),border-color var(--t); }
+.swatch:hover { transform:scale(1.18); }
+.swatch.active { border-color:var(--text); transform:scale(1.18); }
 /* کارت و دکمه */
 .card { background:var(--card); border:1px solid var(--card-brd); border-radius:var(--radius); box-shadow:var(--shadow); backdrop-filter:blur(12px); }
 .btn-primary { background:linear-gradient(135deg,var(--primary),var(--primary2)); color:#fff; border:none; padding:12px 20px; border-radius:var(--radius-sm); font:inherit; font-weight:700; cursor:pointer; box-shadow:0 6px 18px color-mix(in srgb,var(--primary) 45%,transparent); transition:transform var(--t),filter var(--t); }
@@ -60,11 +75,11 @@ body { font-family:'Vazirmatn','Outfit',Tahoma,sans-serif; color:var(--text); ba
 .tab:hover { color:var(--text); }
 .tab.active { background:linear-gradient(135deg,var(--primary),var(--primary2)); color:#fff; box-shadow:0 4px 14px color-mix(in srgb,var(--primary) 40%,transparent); }
 /* نوار تب واکنش‌گرا: روی موبایل فقط آیکون، تمام‌عرض و پخش‌شده */
-@media (max-width:560px) {
-  .tabs { width:100%; max-width:100%; gap:4px; padding:5px; }
-  .tab { flex:1; padding:11px 4px; }
-  .tab .tab-label { display:none; }
-  .tab i { font-size:21px; }
+@media (max-width:640px) {
+  .tabs { width:100%; max-width:100%; gap:4px; padding:5px; border-radius:18px; }
+  .tab { flex:1; flex-direction:column; gap:3px; padding:8px 2px; border-radius:12px; }
+  .tab .tab-label { display:block; font-size:11px; font-weight:600; }
+  .tab i { font-size:20px; }
 }
 /* بازی‌ها */
 .matches-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
@@ -194,6 +209,7 @@ body { font-family:'Vazirmatn','Outfit',Tahoma,sans-serif; color:var(--text); ba
 /* آواتار در نوار بالا */
 .chip-avatar { display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:50%; background:color-mix(in srgb,var(--primary) 22%,transparent); font-size:16px; font-weight:800; overflow:hidden; }
 .chip-avatar img { width:100%; height:100%; object-fit:cover; }
+.chip-avatar-lg { width:42px; height:42px; font-size:20px; flex-shrink:0; }
 /* پروفایل */
 .profile { position:relative; z-index:0; padding:24px; max-width:560px; margin:0 auto; overflow:hidden; }
 .profile-corner { position:absolute; top:-18px; inset-inline-start:-12px; font-size:130px; line-height:1; color:var(--primary); opacity:.08; z-index:-1; pointer-events:none; }
@@ -208,4 +224,4 @@ body { font-family:'Vazirmatn','Outfit',Tahoma,sans-serif; color:var(--text); ba
 .ava-opt.active { border-color:var(--primary); background:color-mix(in srgb,var(--primary) 22%,transparent); }
 .profile .field input { width:100%; padding:12px 14px; border-radius:var(--radius-sm); border:1px solid var(--card-brd); background:var(--select-bg); color:var(--text); font:inherit; outline:none; }
 .profile .field input:focus { border-color:var(--primary); }
-@media (max-width:520px) { .brand h1 { font-size:17px; } .matches-grid { grid-template-columns:1fr; } .bar-row { grid-template-columns:70px 1fr 78px; } .hist-row { grid-template-columns:1fr auto auto; } .hist-actual { display:none; } }
+@media (max-width:520px) { .brand h1 { font-size:16px; } .brand small { display:none; } .brand-logo { font-size:25px; } .icon-btn { width:38px; height:38px; font-size:17px; } .matches-grid { grid-template-columns:1fr; } .bar-row { grid-template-columns:70px 1fr 78px; } .hist-row { grid-template-columns:1fr auto auto; } .hist-actual { display:none; } }
