@@ -400,6 +400,18 @@ window.addEventListener('scroll', () => {
   const sh = document.getElementById('site-header'); if (sh) sh.classList.toggle('scrolled', window.scrollY > 10);
 });
 
+/* ---------- موزیک‌پلیر ---------- */
+const DEFAULT_TRACK = ''; // آدرس فایل صوتی پیش‌فرض (سرود جام جهانی ۲۰۲۶) را اینجا بگذار؛ مثلاً 'anthem.mp3' کنار index.html یا یک URL کامل
+const DEFAULT_TRACK_NAME = 'سرود جام جهانی ۲۰۲۶';
+function mpAudio(){ return document.getElementById('mp-audio'); }
+function toggleMusic(){ document.getElementById('music-player').classList.toggle('open'); }
+function mpSetIcon(playing){ const b = document.getElementById('mp-play'); if (b) b.innerHTML = playing ? "<i class='bi bi-pause-fill'></i>" : "<i class='bi bi-play-fill'></i>"; }
+function mpPlayPause(){ const a = mpAudio(); if (!a.src){ toast('اول یک موسیقی انتخاب کن', false); return; } if (a.paused) a.play().catch(() => toast('مرورگر اجازهٔ پخش نداد', false)); else a.pause(); }
+function mpVolume(v){ mpAudio().volume = +v; }
+function mpLoadLocal(e){ const f = e.target.files && e.target.files[0]; if (!f) return; const a = mpAudio(); a.src = URL.createObjectURL(f); document.getElementById('mp-title').textContent = f.name; a.play().catch(() => {}); }
+function mpInit(){ const a = mpAudio(); if (!a) return; a.volume = 0.6; a.addEventListener('play', () => mpSetIcon(true)); a.addEventListener('pause', () => mpSetIcon(false)); if (DEFAULT_TRACK){ a.src = DEFAULT_TRACK; document.getElementById('mp-title').textContent = DEFAULT_TRACK_NAME; } else { document.getElementById('mp-title').textContent = 'موسیقی دلخواه'; } }
+
 /* ---------- اجرا ---------- */
 renderThemeSwitch();
+mpInit();
 init();
