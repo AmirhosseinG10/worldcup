@@ -185,7 +185,7 @@ async function loadMatches(){
     const stageFa = STAGE_FA[m.stage] || m.stage;
     const isKO = m.stage !== 'group';
     const homeFa = teamFa(m.home_team), awayFa = teamFa(m.away_team);
-    const koInputs = (isKO && !finished && !locked) ? `<br>      <div class="ko-pred"><br>        <div class="ko-hint">پیش‌بینی مرحلهٔ حذفی (اختیاری)</div><br>        <div class="ko-row"><span class="ko-label">نتیجهٔ ۱۲۰′ (با وقت اضافه)</span><br>          <span class="ko-score"><input type="number" min="0" id="h120-${m.id}" placeholder="-" value="${m.pred_home_120 ?? ''}"><span class="dash">−</span><input type="number" min="0" id="a120-${m.id}" placeholder="-" value="${m.pred_away_120 ?? ''}"></span></div><br>        <div class="ko-row"><span class="ko-label">تیم صعودکننده</span><br>          <select id="adv-${m.id}" class="ko-select"><option value="">—</option><option value="${m.home_team}" ${m.pred_advancing===m.home_team?'selected':''}>${homeFa}</option><option value="${m.away_team}" ${m.pred_advancing===m.away_team?'selected':''}>${awayFa}</option></select></div><br>        <div class="ko-row"><span class="ko-label">برندهٔ پنالتی (اگر کشید)</span><br>          <select id="pen-${m.id}" class="ko-select"><option value="">—</option><option value="${m.home_team}" ${m.pred_pen_winner===m.home_team?'selected':''}>${homeFa}</option><option value="${m.away_team}" ${m.pred_pen_winner===m.away_team?'selected':''}>${awayFa}</option></select></div><br>      </div>` : '';
+    const koInputs = (isKO && !finished && !locked) ? `<br>      <div class="ko-pred"><br>        <div class="ko-hint">پیش‌بینی مرحلهٔ حذفی (اختیاری)</div><br>        <div class="ko-row"><span class="ko-label">نتیجهٔ ۱۲۰′ (با وقت اضافه)</span><br>          <span class="ko-score"><input type="number" min="0" id="h120-${m.id}" placeholder="-" value="${m.pred_home_120 ?? ''}"><span class="dash">−</span><input type="number" min="0" id="a120-${m.id}" placeholder="-" value="${m.pred_away_120 ?? ''}"></span></div><br>        <div class="ko-row"><span class="ko-label">تیم صعودکننده</span><br>          <select id="adv-${m.id}" class="ko-select"><option value="">—</option><option value="${m.home_team}" ${m.pred_advancing===m.home_team?'selected':''}>${homeFa}</option><option value="${m.away_team}" ${m.pred_advancing===m.away_team?'selected':''}>${awayFa}</option></select></div><br>        <div class="ko-row"><span class="ko-label">نتیجهٔ پنالتی (اگر کشید)</span><br>          <span class="ko-score"><input type="number" min="0" id="penh-${m.id}" placeholder="-" value="${m.pred_pen_home ?? ''}"><span class="dash">−</span><input type="number" min="0" id="pena-${m.id}" placeholder="-" value="${m.pred_pen_away ?? ''}"></span></div><br>      </div>` : '';
     const hasPred = m.pred_home_90 !== null && m.pred_home_90 !== undefined;
     let myPred = '';
     if (hasPred) {
@@ -229,7 +229,8 @@ async function predict(id){
   const e120h = document.getElementById(`h120-${id}`), e120a = document.getElementById(`a120-${id}`);
   if (e120h && e120a && e120h.value !== '' && e120a.value !== ''){ body.pred_home_120 = +e120h.value; body.pred_away_120 = +e120a.value; }
   const eAdv = document.getElementById(`adv-${id}`); if (eAdv && eAdv.value) body.pred_advancing = eAdv.value;
-  const ePen = document.getElementById(`pen-${id}`); if (ePen && ePen.value) body.pred_pen_winner = ePen.value;
+  const epenh = document.getElementById(`penh-${id}`), epena = document.getElementById(`pena-${id}`);
+  if (epenh && epena && epenh.value !== '' && epena.value !== ''){ body.pred_pen_home = +epenh.value; body.pred_pen_away = +epena.value; }
   const r = await fetch(`${API}/predict.php`, opts('POST', body));
   if (r.ok){ toast('پیش‌بینی ثبت شد ✅'); loadLeaderboard(); }
   else {
