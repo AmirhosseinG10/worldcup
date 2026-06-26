@@ -19,10 +19,10 @@ body { font-family:'Vazirmatn','Outfit',Tahoma,sans-serif; color:var(--text); ba
 .bg-orbs span:nth-child(3) { background:var(--orb3); top:40%; left:50%; animation:float 22s ease-in-out infinite; }
 @keyframes float { 0%,100% { transform:translate(0,0) scale(1); } 50% { transform:translate(-30px,40px) scale(1.15); } }
 /* هدر چسبان (برند + نوار تب‌ها) */
-.site-header { position:sticky; top:0; z-index:40; transition:background var(--t),box-shadow var(--t),backdrop-filter var(--t); }
-.site-header.scrolled { background:color-mix(in srgb,var(--bg2) 86%,transparent); backdrop-filter:blur(16px); box-shadow:0 6px 24px rgba(0,0,0,.3); }
+.site-header { position:sticky; top:0; z-index:40; background:color-mix(in srgb,var(--bg2) 88%,transparent); backdrop-filter:blur(16px); box-shadow:0 6px 24px rgba(0,0,0,.28); padding-bottom:8px; transition:box-shadow var(--t); }
+.site-header.scrolled { box-shadow:0 12px 30px rgba(0,0,0,.36); }
 .topbar { max-width:var(--maxw); margin:0 auto; padding:14px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:nowrap; transition:padding var(--t); }
-.site-header.scrolled .topbar { padding:9px 16px; }
+.site-header.scrolled .topbar { padding:14px 16px; }
 .brand { display:flex; align-items:center; gap:12px; min-width:0; }
 .brand > div { min-width:0; }
 .brand-logo { font-size:30px; line-height:1; display:inline-flex; color:var(--primary); filter:drop-shadow(0 4px 8px rgba(0,0,0,.3)); }
