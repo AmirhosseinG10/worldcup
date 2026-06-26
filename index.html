@@ -53,11 +53,21 @@
   <main id="app-view" class="app-view" style="display:none">
     <nav class="tabs">
       <button class="tab active" data-tab="matches" onclick="switchTab('matches')">🎯 بازی‌ها</button>
+      <button class="tab" data-tab="tournament" onclick="switchTab('tournament')">🏆 قهرمانی</button>
+      <button class="tab" data-tab="stats" onclick="switchTab('stats')">📊 آمار من</button>
       <button class="tab" data-tab="leaderboard" onclick="switchTab('leaderboard')">🏅 جدول</button>
     </nav>
 
     <section id="tab-matches" class="tab-panel">
       <div id="matches" class="matches-grid"></div>
+    </section>
+
+    <section id="tab-tournament" class="tab-panel" style="display:none">
+      <div id="tournament"></div>
+    </section>
+
+    <section id="tab-stats" class="tab-panel" style="display:none">
+      <div id="stats"></div>
     </section>
 
     <section id="tab-leaderboard" class="tab-panel" style="display:none">
