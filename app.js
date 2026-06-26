@@ -19,6 +19,17 @@ function toggleMenu(which){ ['settings','profile'].forEach(id => { const el = do
 function closeMenus(){ document.querySelectorAll('.popover.open').forEach(p => p.classList.remove('open')); }
 document.addEventListener('click', (e) => { if (!e.target.closest('.menu-wrap')) closeMenus(); });
 
+/* ---------- رقابت‌ها (بخش هشتم) ---------- */
+const COMPETITIONS = [
+  { code:'WC', name:'جام جهانی', icon:'bi-trophy-fill' },
+  { code:'CL', name:'لیگ قهرمانان', icon:'bi-trophy' },
+  { code:'PL', name:'لیگ برتر', icon:'bi-shield-fill' },
+  { code:'PD', name:'لالیگا', icon:'bi-shield-shaded' },
+];
+let CURRENT_COMP = 'WC';
+function renderCompBar(){ const bar = document.getElementById('comp-bar'); if (!bar) return; bar.innerHTML = COMPETITIONS.map(c => `<button class="comp-chip ${c.code===CURRENT_COMP?'active':''}" onclick="selectComp('${c.code}')"><i class="bi ${c.icon}"></i> ${c.name}</button>`).join(''); }
+function selectComp(code){ CURRENT_COMP = code; renderCompBar(); loadMatches(); }
+
 /* ---------- نام فارسی + پرچم کشورها ---------- */
 const COUNTRIES = {
   'iran':{fa:'ایران',code:'ir'}, 'ir iran':{fa:'ایران',code:'ir'},
@@ -156,18 +167,31 @@ async function login(){
 async function logout(){ await fetch(`${API}/auth.php?action=logout`, opts('GET')); location.reload(); }
 function showAuth(which){
   ['login','register','forgot'].forEach(v => { const el = document.getElementById('auth-'+v); if (el) el.style.display = (v===which)?'block':'none'; });
+  if (which === 'register') loadChallenge();
 }
 async function register(){
   const username = document.getElementById('reg-username').value.trim();
   const email = document.getElementById('reg-email').value.trim();
   const password = document.getElementById('reg-password').value;
+  const nickname = document.getElementById('reg-nickname').value; // هانی‌پات (باید خالی بماند)
+  const captcha = document.getElementById('reg-captcha').value;
+  const tEl = document.querySelector('[name="cf-turnstile-response"]');
+  const turnstile = tEl ? tEl.value : '';
   const err = document.getElementById('reg-error'); err.textContent = '';
   if (username.length < 3 || password.length < 4 || !email.includes('@')){ err.textContent = 'نام کاربری ۳+، رمز ۴+ و ایمیل معتبر لازم است'; return; }
+  if (captcha === ''){ err.textContent = 'پاسخ سؤال ریاضی را وارد کن'; return; }
   try {
-    const r = await fetch(`${API}/auth.php?action=register`, opts('POST', { username, email, password }));
+    const r = await fetch(`${API}/auth.php?action=register`, opts('POST', { username, email, password, nickname, captcha:+captcha, turnstile }));
     if (r.ok){ await init(); }
-    else { const e = await r.json().catch(()=>({})); err.textContent = e.error === 'already_exists' ? 'این نام کاربری یا ایمیل قبلاً ثبت شده' : 'اطلاعات نامعتبر است'; }
+    else { const e = await r.json().catch(()=>({})); err.textContent = e.error === 'already_exists' ? 'این نام کاربری یا ایمیل قبلاً ثبت شده' : (e.error === 'captcha_failed' ? 'پاسخ سؤال اشتباه است، دوباره تلاش کن' : (e.error === 'bot_detected' ? 'ثبت‌نام مشکوک رد شد' : 'اطلاعات نامعتبر است')); loadChallenge(); }
   } catch(e){ err.textContent = 'خطا در اتصال به سرور'; }
+}
+async function loadChallenge(){
+  try {
+    const c = await (await fetch(`${API}/auth.php?action=challenge`, opts('GET'))).json();
+    const q = document.getElementById('captcha-q'); if (q) q.textContent = `${faNum(c.a)} + ${faNum(c.b)} = ؟`;
+    const inp = document.getElementById('reg-captcha'); if (inp) inp.value = '';
+  } catch(e){}
 }
 async function forgot(){
   const email = document.getElementById('forgot-email').value.trim();
@@ -193,6 +217,7 @@ async function init(){
   renderMyAvatar();
   document.getElementById('main-tabs').style.display = 'flex';
   if (document.documentElement.getAttribute('data-theme') === 'coffee' && me.username !== 'SayeTheCat') applyTheme('stadium'); else renderThemeSwitch();
+  renderCompBar();
   loadMatches(); loadLeaderboard();
 }
 function renderMyAvatar(){ if (!ME) return; renderAvatar(document.getElementById('chip-avatar'), ME.avatar); renderAvatar(document.getElementById('chip-avatar-lg'), ME.avatar); }
@@ -222,7 +247,7 @@ function switchTab(name){
 async function loadMatches(){
   const box = document.getElementById('matches');
   box.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
-  const data = await (await fetch(`${API}/matches.php`, opts('GET'))).json();
+  const data = await (await fetch(`${API}/matches.php?competition=${CURRENT_COMP}`, opts('GET'))).json();
   const now = new Date((data.now||'').replace(' ','T'));
   if (!data.matches || !data.matches.length){ box.innerHTML = '<p class="muted center">هنوز بازی‌ای ثبت نشده.</p>'; return; }
   box.innerHTML = data.matches.map(m => {
@@ -313,7 +338,7 @@ async function loadTournament(){
     { key:'runnerup', icon:'<i class="bi bi-award-fill" style="color:#c0c0c0"></i>', label:'نایب‌قهرمان', pts:'۲۵' },
     { key:'third',    icon:'<i class="bi bi-award-fill" style="color:#cd7f32"></i>', label:'تیم سوم',     pts:'۱۵' },
   ];
-  box.innerHTML = '<div class="card tourney"><div class="tourney-head"><h2><i class="bi bi-trophy"></i> پیش‌بینی قهرمانی</h2><p class="muted">سه تیم برتر تورنمنت را حدس بزن — فقط جایگاه دقیق امتیاز می‌گیرد.</p>' + (locked ? `<div class="tourney-lock"><i class="bi bi-lock-fill"></i> مهلت ثبت تمام شده (${dl})</div>` : `<div class="tourney-deadline"><i class="bi bi-hourglass-split"></i> مهلت ثبت: تا ${dl}</div>`) + '</div>' + ((p.points != null && +p.points > 0) ? `<div class="tourney-points">امتیاز قهرمانی تو: <b>${faNum(p.points)}</b></div>` : '') + '<div class="tourney-slots">' + slots.map(s => `<div class="tourney-slot"><div class="slot-rank">${s.icon} ${s.label}<span class="slot-pts">${s.pts} امتیاز</span></div><select id="tp-${s.key}" class="ko-select" ${locked?'disabled':''}>${teamOpts(p[s.key])}</select></div>`).join('') + '</div>' + (locked ? '' : '<button class="btn-primary btn-block" onclick="saveTournament()"><i class="bi bi-save"></i> ثبت پیش‌بینی قهرمانی</button>') + '</div>';
+  box.innerHTML = '<div class="card tourney"><div class="tourney-head"><h2><i class="bi bi-trophy"></i> پیش‌بینی قهرمانی</h2><p class="muted">سه تیم برتر جام جهانی را حدس بزن — فقط جایگاه دقیق امتیاز می‌گیرد.</p>' + (locked ? `<div class="tourney-lock"><i class="bi bi-lock-fill"></i> مهلت ثبت تمام شده (${dl})</div>` : `<div class="tourney-deadline"><i class="bi bi-hourglass-split"></i> مهلت ثبت: تا ${dl}</div>`) + '</div>' + ((p.points != null && +p.points > 0) ? `<div class="tourney-points">امتیاز قهرمانی تو: <b>${faNum(p.points)}</b></div>` : '') + '<div class="tourney-slots">' + slots.map(s => `<div class="tourney-slot"><div class="slot-rank">${s.icon} ${s.label}<span class="slot-pts">${s.pts} امتیاز</span></div><select id="tp-${s.key}" class="ko-select" ${locked?'disabled':''}>${teamOpts(p[s.key])}</select></div>`).join('') + '</div>' + (locked ? '' : '<button class="btn-primary btn-block" onclick="saveTournament()"><i class="bi bi-save"></i> ثبت پیش‌بینی قهرمانی</button>') + '</div>';
 }
 async function saveTournament(){
   const champion = document.getElementById('tp-champion').value;
