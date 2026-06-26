@@ -28,11 +28,20 @@
         </div>
       </div>
       <div class="topbar-actions">
-        <div class="theme-switch" id="theme-switch"></div>
-        <div class="user-chip" id="user-chip" style="display:none">
-          <span class="chip-avatar" id="chip-avatar"></span>
-          <span id="who"></span>
-          <button class="btn-ghost" onclick="logout()">خروج</button>
+        <div class="menu-wrap">
+          <button class="icon-btn" id="settings-btn" onclick="toggleMenu('settings')" aria-label="تنظیمات"><i class="bi bi-gear-fill"></i></button>
+          <div class="popover popover-settings" id="menu-settings">
+            <div class="popover-title">تم سایت</div>
+            <div class="theme-switch" id="theme-switch"></div>
+          </div>
+        </div>
+        <div class="menu-wrap" id="profile-wrap" style="display:none">
+          <button class="icon-btn avatar-btn" id="profile-btn" onclick="toggleMenu('profile')" aria-label="پروفایل"><span class="chip-avatar" id="chip-avatar"></span></button>
+          <div class="popover popover-profile" id="menu-profile">
+            <div class="popover-user"><span class="chip-avatar chip-avatar-lg" id="chip-avatar-lg"></span><b id="who"></b></div>
+            <button class="menu-item" onclick="switchTab('profile'); closeMenus()"><i class="bi bi-person-gear"></i> ویرایش پروفایل</button>
+            <button class="menu-item danger" onclick="logout()"><i class="bi bi-box-arrow-right"></i> خروج</button>
+          </div>
         </div>
       </div>
     </header>
@@ -106,6 +115,6 @@
   <button id="to-top" class="to-top" onclick="scrollTop()" aria-label="بالا"><i class="bi bi-arrow-up"></i></button>
   <div id="toast" class="toast"></div>
 
-  <script src="app.js?v=5"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>
