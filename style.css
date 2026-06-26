@@ -1,11 +1,12 @@
 * { box-sizing:border-box; margin:0; padding:0; }
-:root { --radius:18px; --radius-sm:12px; --maxw:880px; --shadow:0 10px 30px rgba(0,0,0,.25); --t:.25s ease; }
+:root { --radius:18px; --radius-sm:12px; --maxw:880px; --shadow:0 10px 30px rgba(0,0,0,.25); --t:.25s ease; --select-bg:#1a2433; }
 /* ===== تم‌ها ===== */
 [data-theme=stadium] { --bg1:#0a2a1a; --bg2:#06140d; --card:rgba(255,255,255,.06); --card-brd:rgba(255,255,255,.12); --text:#eafff3; --muted:#9bdcb8; --primary:#22c55e; --primary2:#16a34a; --accent:#a3e635; --orb1:#16a34a; --orb2:#0ea5e9; --orb3:#84cc16; }
 [data-theme=midnight] { --bg1:#0b1220; --bg2:#05080f; --card:rgba(255,255,255,.05); --card-brd:rgba(120,190,255,.18); --text:#e6f0ff; --muted:#8aa6c8; --primary:#38bdf8; --primary2:#0ea5e9; --accent:#22d3ee; --orb1:#1d4ed8; --orb2:#06b6d4; --orb3:#7c3aed; }
 [data-theme=sunset] { --bg1:#2a1030; --bg2:#160617; --card:rgba(255,255,255,.06); --card-brd:rgba(255,170,200,.18); --text:#fff0f5; --muted:#e3a7c2; --primary:#fb7185; --primary2:#f43f5e; --accent:#fb923c; --orb1:#db2777; --orb2:#f97316; --orb3:#9333ea; }
 [data-theme=royal] { --bg1:#1a103a; --bg2:#0c0720; --card:rgba(255,255,255,.06); --card-brd:rgba(180,160,255,.2); --text:#f1ecff; --muted:#b6a8e6; --primary:#a78bfa; --primary2:#8b5cf6; --accent:#c4b5fd; --orb1:#7c3aed; --orb2:#6366f1; --orb3:#d946ef; }
-[data-theme=light] { --bg1:#eef3f8; --bg2:#dde7f0; --card:#ffffff; --card-brd:#e2e8f0; --text:#0f172a; --muted:#64748b; --primary:#0ea5e9; --primary2:#0284c7; --accent:#10b981; --orb1:#bae6fd; --orb2:#bbf7d0; --orb3:#ddd6fe; --shadow:0 10px 30px rgba(2,32,71,.10); }
+[data-theme=light] { --bg1:#eef3f8; --bg2:#dde7f0; --card:#ffffff; --card-brd:#e2e8f0; --text:#0f172a; --muted:#64748b; --primary:#0ea5e9; --primary2:#0284c7; --accent:#10b981; --orb1:#bae6fd; --orb2:#bbf7d0; --orb3:#ddd6fe; --shadow:0 10px 30px rgba(2,32,71,.10); --select-bg:#ffffff; }
+[data-theme=coffee] { --bg1:#2a1c12; --bg2:#150d07; --card:rgba(255,240,225,.06); --card-brd:rgba(210,170,130,.2); --text:#f6ece1; --muted:#c8a888; --primary:#c08552; --primary2:#9c6b3f; --accent:#e0b07a; --orb1:#7c4a25; --orb2:#a9743f; --orb3:#5c3a1e; --select-bg:#2a1c12; }
 body { font-family:'Vazirmatn','Outfit',Tahoma,sans-serif; color:var(--text); background:linear-gradient(160deg,var(--bg1),var(--bg2)); min-height:100vh; line-height:1.7; overflow-x:hidden; transition:background var(--t),color var(--t); }
 /* فونت لاتین جذاب برای نام‌کاربری‌ها و متن انگلیسی */
 .lb-user, #who, .brand small { font-family:'Outfit','Vazirmatn',Tahoma,sans-serif; font-weight:600; letter-spacing:.2px; }
@@ -18,7 +19,8 @@ body { font-family:'Vazirmatn','Outfit',Tahoma,sans-serif; color:var(--text); ba
 .bg-orbs span:nth-child(3) { background:var(--orb3); top:40%; left:50%; animation:float 22s ease-in-out infinite; }
 @keyframes float { 0%,100% { transform:translate(0,0) scale(1); } 50% { transform:translate(-30px,40px) scale(1.15); } }
 /* هدر */
-.topbar { max-width:var(--maxw); margin:0 auto; padding:18px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.topbar { position:sticky; top:0; z-index:40; max-width:var(--maxw); margin:0 auto; padding:14px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; transition:padding var(--t),background var(--t),box-shadow var(--t); border-radius:0 0 var(--radius) var(--radius); }
+.topbar.scrolled { background:color-mix(in srgb,var(--bg2) 82%,transparent); backdrop-filter:blur(14px); box-shadow:0 6px 20px rgba(0,0,0,.25); padding:8px 16px; }
 .brand { display:flex; align-items:center; gap:12px; }
 .brand-logo { font-size:34px; filter:drop-shadow(0 4px 8px rgba(0,0,0,.3)); }
 .brand h1 { font-size:20px; font-weight:800; }
@@ -97,8 +99,10 @@ body { font-family:'Vazirmatn','Outfit',Tahoma,sans-serif; color:var(--text); ba
 .ko-score { display:flex; align-items:center; gap:6px; }
 .ko-score input { width:40px; height:38px; text-align:center; font-size:16px; font-weight:800; border-radius:10px; border:1px solid var(--card-brd); background:rgba(255,255,255,.05); color:var(--text); outline:none; }
 .ko-score input:focus { border-color:var(--primary); }
-.ko-select { font:inherit; font-weight:600; padding:7px 10px; border-radius:10px; border:1px solid var(--card-brd); background:var(--card); color:var(--text); outline:none; cursor:pointer; }
-.ko-select:focus { border-color:var(--primary); }
+.ko-select { font:inherit; font-weight:600; padding:8px 34px 8px 12px; border-radius:10px; border:1px solid var(--card-brd); background-color:var(--select-bg); color:var(--text); outline:none; cursor:pointer; appearance:none; -webkit-appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23999' d='M1 1l5 5 5-5'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:left 12px center; background-size:11px; transition:border-color var(--t),box-shadow var(--t); }
+.ko-select:hover { border-color:var(--primary); }
+.ko-select:focus { border-color:var(--primary); box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 25%,transparent); }
+.ko-select option { background:var(--select-bg); color:var(--text); }
 /* جدول رده‌بندی */
 .lb { padding:8px; overflow:hidden; }
 .lb-row { display:grid; grid-template-columns:48px 1fr 80px 60px; align-items:center; padding:13px 14px; }
@@ -116,6 +120,16 @@ body { font-family:'Vazirmatn','Outfit',Tahoma,sans-serif; color:var(--text); ba
 .toast.err { border-color:#fb7185; }
 .muted { color:var(--muted); }
 .center { text-align:center; padding:30px; }
+/* اسکرول‌بار سفارشی */
+* { scrollbar-width:thin; scrollbar-color:var(--primary) transparent; }
+::-webkit-scrollbar { width:10px; height:10px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:linear-gradient(var(--primary),var(--primary2)); border-radius:999px; border:2px solid transparent; background-clip:padding-box; }
+::-webkit-scrollbar-thumb:hover { background:var(--accent); }
+/* دکمهٔ بالا رفتن */
+.to-top { position:fixed; bottom:24px; inset-inline-start:24px; width:46px; height:46px; border-radius:50%; border:none; cursor:pointer; font-size:22px; font-weight:800; color:#fff; background:linear-gradient(135deg,var(--primary),var(--primary2)); box-shadow:0 8px 22px color-mix(in srgb,var(--primary) 45%,transparent); opacity:0; transform:translateY(20px) scale(.8); pointer-events:none; transition:all var(--t); z-index:45; }
+.to-top.show { opacity:1; transform:translateY(0) scale(1); pointer-events:auto; }
+.to-top:hover { filter:brightness(1.1); transform:translateY(-3px); }
 /* تورنمنت (فاز ۳) */
 .tourney { padding:24px; max-width:560px; margin:0 auto; }
 .tourney-head { text-align:center; margin-bottom:18px; }
@@ -158,4 +172,25 @@ body { font-family:'Vazirmatn','Outfit',Tahoma,sans-serif; color:var(--text); ba
 .hist-row.pred-exact { border-color:#22c55e; background:rgba(34,197,94,.12); }
 .hist-row.pred-result { border-color:#cbd5e1; background:rgba(203,213,225,.1); }
 .hist-row.pred-wrong { border-color:#fb7185; background:rgba(244,63,94,.1); }
+/* لینک‌های احراز هویت */
+.auth-links { margin-top:16px; display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; font-size:13px; }
+.auth-links a { color:var(--primary); font-weight:700; cursor:pointer; }
+.auth-links a:hover { text-decoration:underline; }
+.auth-links span { color:var(--muted); }
+/* آواتار در نوار بالا */
+.chip-avatar { display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:50%; background:color-mix(in srgb,var(--primary) 22%,transparent); font-size:16px; font-weight:800; overflow:hidden; }
+.chip-avatar img { width:100%; height:100%; object-fit:cover; }
+/* پروفایل */
+.profile { padding:24px; max-width:560px; margin:0 auto; }
+.profile-head { display:flex; align-items:center; gap:16px; margin-bottom:20px; }
+.profile-ava { display:inline-flex; align-items:center; justify-content:center; width:64px; height:64px; border-radius:50%; background:color-mix(in srgb,var(--primary) 22%,transparent); font-size:32px; font-weight:800; overflow:hidden; flex-shrink:0; }
+.profile-ava img { width:100%; height:100%; object-fit:cover; }
+.profile-head h2 { font-size:20px; }
+.fld-label { display:block; font-size:13px; font-weight:700; color:var(--muted); margin:14px 0 6px; }
+.ava-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(46px,1fr)); gap:8px; }
+.ava-opt { font-size:22px; padding:8px; border-radius:12px; border:1px solid var(--card-brd); background:var(--card); cursor:pointer; transition:all var(--t); }
+.ava-opt:hover { transform:scale(1.08); border-color:var(--primary); }
+.ava-opt.active { border-color:var(--primary); background:color-mix(in srgb,var(--primary) 22%,transparent); }
+.profile .field input { width:100%; padding:12px 14px; border-radius:var(--radius-sm); border:1px solid var(--card-brd); background:var(--select-bg); color:var(--text); font:inherit; outline:none; }
+.profile .field input:focus { border-color:var(--primary); }
 @media (max-width:520px) { .brand h1 { font-size:17px; } .matches-grid { grid-template-columns:1fr; } .bar-row { grid-template-columns:70px 1fr 78px; } .hist-row { grid-template-columns:1fr auto auto; } .hist-actual { display:none; } }
