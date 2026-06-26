@@ -112,8 +112,22 @@
   </main>
 
   <button id="to-top" class="to-top" onclick="goTop()" aria-label="بالا"><i class="bi bi-arrow-up"></i></button>
+
+  <div id="music-player" class="music-player">
+    <button class="mp-toggle" onclick="toggleMusic()" aria-label="موسیقی"><i class="bi bi-music-note-beamed"></i></button>
+    <div class="mp-panel">
+      <div class="mp-title" id="mp-title">موسیقی</div>
+      <div class="mp-controls">
+        <button class="mp-btn" id="mp-play" onclick="mpPlayPause()" aria-label="پخش"><i class="bi bi-play-fill"></i></button>
+        <input type="range" id="mp-vol" class="mp-vol" min="0" max="1" step="0.05" value="0.6" oninput="mpVolume(this.value)">
+      </div>
+      <label class="mp-upload"><i class="bi bi-folder2-open"></i> موسیقی از سیستم<input type="file" accept="audio/*" onchange="mpLoadLocal(event)" hidden></label>
+      <audio id="mp-audio" loop></audio>
+    </div>
+  </div>
+
   <div id="toast" class="toast"></div>
 
-  <script src="app.js?v=7"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>
