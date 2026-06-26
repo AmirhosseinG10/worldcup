@@ -9,13 +9,11 @@ const THEMES = [
   { id:'light',    name:'روشن',    dot:'#0ea5e9' },
   { id:'coffee',   name:'قهوه',    dot:'#b07d56' },
 ];
-function applyTheme(id){ document.documentElement.setAttribute('data-theme', id); localStorage.setItem('theme', id); renderThemeSwitch(); }
-function availableThemes(){ return THEMES.filter(t => t.id !== 'coffee' || (ME && ME.username === 'SayeTheCat')); }
+function isThemeLocked(id){ return id === 'coffee' && !(ME && ME.username === 'SayeTheCat'); }
+function applyTheme(id){ if (isThemeLocked(id)){ toast('این تم قفل است', false); return; } document.documentElement.setAttribute('data-theme', id); localStorage.setItem('theme', id); renderThemeSwitch(); }
 function renderThemeSwitch(){
   const cur = document.documentElement.getAttribute('data-theme') || 'stadium';
-  document.getElementById('theme-switch').innerHTML = availableThemes().map(t =>
-    `<button class="swatch ${t.id===cur?'active':''}" title="${t.name}" style="--dot:${t.dot}" onclick="applyTheme('${t.id}')"></button>`
-  ).join('');
+  document.getElementById('theme-switch').innerHTML = THEMES.map(t => `<button class="swatch ${t.id===cur?'active':''} ${isThemeLocked(t.id)?'locked':''}" title="${t.name}${isThemeLocked(t.id)?' — قفل':''}" style="--dot:${t.dot}" onclick="applyTheme('${t.id}')">${isThemeLocked(t.id)?"<i class='bi bi-lock-fill'></i>":''}</button>`).join('');
 }
 function toggleMenu(which){ ['settings','profile'].forEach(id => { const el = document.getElementById('menu-' + id); if (el) el.classList.toggle('open', id === which ? !el.classList.contains('open') : false); }); }
 function closeMenus(){ document.querySelectorAll('.popover.open').forEach(p => p.classList.remove('open')); }
@@ -396,7 +394,7 @@ async function saveProfile(){
 }
 
 /* ---------- دکمهٔ بالا رفتن ---------- */
-function scrollTop(){ window.scrollTo({ top:0, behavior:'smooth' }); }
+function goTop(){ window.scrollTo({ top:0, behavior:'smooth' }); }
 window.addEventListener('scroll', () => {
   const tt = document.getElementById('to-top'); if (tt) tt.classList.toggle('show', window.scrollY > 200);
   const sh = document.getElementById('site-header'); if (sh) sh.classList.toggle('scrolled', window.scrollY > 10);
