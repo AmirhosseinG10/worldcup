@@ -18,11 +18,13 @@ body { font-family:'Vazirmatn','Outfit',Tahoma,sans-serif; color:var(--text); ba
 .bg-orbs span:nth-child(2) { background:var(--orb2); bottom:-100px; left:-60px; animation:float 18s ease-in-out infinite reverse; }
 .bg-orbs span:nth-child(3) { background:var(--orb3); top:40%; left:50%; animation:float 22s ease-in-out infinite; }
 @keyframes float { 0%,100% { transform:translate(0,0) scale(1); } 50% { transform:translate(-30px,40px) scale(1.15); } }
-/* هدر */
-.topbar { position:sticky; top:0; z-index:40; max-width:var(--maxw); margin:0 auto; padding:14px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; transition:padding var(--t),background var(--t),box-shadow var(--t); border-radius:0 0 var(--radius) var(--radius); }
-.topbar.scrolled { background:color-mix(in srgb,var(--bg2) 82%,transparent); backdrop-filter:blur(14px); box-shadow:0 6px 20px rgba(0,0,0,.25); padding:8px 16px; }
+/* هدر چسبان (برند + نوار تب‌ها) */
+.site-header { position:sticky; top:0; z-index:40; transition:background var(--t),box-shadow var(--t),backdrop-filter var(--t); }
+.site-header.scrolled { background:color-mix(in srgb,var(--bg2) 86%,transparent); backdrop-filter:blur(16px); box-shadow:0 6px 24px rgba(0,0,0,.3); }
+.topbar { max-width:var(--maxw); margin:0 auto; padding:14px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; transition:padding var(--t); }
+.site-header.scrolled .topbar { padding:9px 16px; }
 .brand { display:flex; align-items:center; gap:12px; }
-.brand-logo { font-size:34px; filter:drop-shadow(0 4px 8px rgba(0,0,0,.3)); }
+.brand-logo { font-size:30px; line-height:1; display:inline-flex; color:var(--primary); filter:drop-shadow(0 4px 8px rgba(0,0,0,.3)); }
 .brand h1 { font-size:20px; font-weight:800; }
 .brand small { color:var(--muted); }
 .topbar-actions { display:flex; align-items:center; gap:14px; }
@@ -51,10 +53,19 @@ body { font-family:'Vazirmatn','Outfit',Tahoma,sans-serif; color:var(--text); ba
 .field input:focus { border-color:var(--primary); box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 30%,transparent); }
 .error-text { color:#fb7185; min-height:22px; margin-top:8px; font-size:14px; }
 /* تب‌ها */
-.app-view { max-width:var(--maxw); margin:0 auto; padding:0 16px 40px; }
-.tabs { display:flex; gap:8px; background:var(--card); border:1px solid var(--card-brd); padding:6px; border-radius:999px; width:max-content; margin:6px auto 22px; }
-.tab { border:none; background:transparent; color:var(--muted); font:inherit; font-weight:700; cursor:pointer; padding:9px 20px; border-radius:999px; transition:all var(--t); }
-.tab.active { background:linear-gradient(135deg,var(--primary),var(--primary2)); color:#fff; }
+.app-view { max-width:var(--maxw); margin:0 auto; padding:8px 16px 40px; }
+.tabs { display:flex; gap:6px; background:var(--card); border:1px solid var(--card-brd); padding:6px; border-radius:999px; width:max-content; max-width:calc(100% - 24px); margin:2px auto 14px; box-shadow:var(--shadow); }
+.tab { display:inline-flex; align-items:center; justify-content:center; gap:7px; border:none; background:transparent; color:var(--muted); font:inherit; font-weight:700; cursor:pointer; padding:9px 18px; border-radius:999px; transition:all var(--t); white-space:nowrap; }
+.tab i { font-size:17px; line-height:1; }
+.tab:hover { color:var(--text); }
+.tab.active { background:linear-gradient(135deg,var(--primary),var(--primary2)); color:#fff; box-shadow:0 4px 14px color-mix(in srgb,var(--primary) 40%,transparent); }
+/* نوار تب واکنش‌گرا: روی موبایل فقط آیکون، تمام‌عرض و پخش‌شده */
+@media (max-width:560px) {
+  .tabs { width:100%; max-width:100%; gap:4px; padding:5px; }
+  .tab { flex:1; padding:11px 4px; }
+  .tab .tab-label { display:none; }
+  .tab i { font-size:21px; }
+}
 /* بازی‌ها */
 .matches-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
 .match { padding:16px; transition:transform var(--t),box-shadow var(--t); }
@@ -114,7 +125,10 @@ body { font-family:'Vazirmatn','Outfit',Tahoma,sans-serif; color:var(--text); ba
 /* اسکلت و توست */
 .skeleton { height:150px; border-radius:var(--radius); background:linear-gradient(90deg,var(--card),var(--card-brd),var(--card)); background-size:200% 100%; animation:shimmer 1.3s infinite; }
 @keyframes shimmer { 0% { background-position:200% 0; } 100% { background-position:-200% 0; } }
-.toast { position:fixed; bottom:24px; left:50%; transform:translate(-50%,80px); opacity:0; background:var(--bg2); color:var(--text); border:1px solid var(--card-brd); padding:13px 22px; border-radius:999px; box-shadow:var(--shadow); font-weight:700; transition:all .3s; z-index:50; }
+.toast { position:fixed; bottom:24px; left:50%; transform:translate(-50%,80px); opacity:0; display:flex; align-items:center; gap:8px; background:var(--bg2); color:var(--text); border:1px solid var(--card-brd); padding:13px 22px; border-radius:999px; box-shadow:var(--shadow); font-weight:700; transition:all .3s; z-index:50; }
+.toast i { font-size:18px; }
+.toast.ok i { color:var(--primary); }
+.toast.err i { color:#fb7185; }
 .toast.show { transform:translate(-50%,0); opacity:1; }
 .toast.ok { border-color:var(--primary); }
 .toast.err { border-color:#fb7185; }
@@ -181,7 +195,8 @@ body { font-family:'Vazirmatn','Outfit',Tahoma,sans-serif; color:var(--text); ba
 .chip-avatar { display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:50%; background:color-mix(in srgb,var(--primary) 22%,transparent); font-size:16px; font-weight:800; overflow:hidden; }
 .chip-avatar img { width:100%; height:100%; object-fit:cover; }
 /* پروفایل */
-.profile { padding:24px; max-width:560px; margin:0 auto; }
+.profile { position:relative; z-index:0; padding:24px; max-width:560px; margin:0 auto; overflow:hidden; }
+.profile-corner { position:absolute; top:-18px; inset-inline-start:-12px; font-size:130px; line-height:1; color:var(--primary); opacity:.08; z-index:-1; pointer-events:none; }
 .profile-head { display:flex; align-items:center; gap:16px; margin-bottom:20px; }
 .profile-ava { display:inline-flex; align-items:center; justify-content:center; width:64px; height:64px; border-radius:50%; background:color-mix(in srgb,var(--primary) 22%,transparent); font-size:32px; font-weight:800; overflow:hidden; flex-shrink:0; }
 .profile-ava img { width:100%; height:100%; object-fit:cover; }
