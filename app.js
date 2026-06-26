@@ -7,6 +7,7 @@ const THEMES = [
   { id:'sunset',   name:'غروب',    dot:'#fb7185' },
   { id:'royal',    name:'سلطنتی',  dot:'#a78bfa' },
   { id:'light',    name:'روشن',    dot:'#0ea5e9' },
+  { id:'coffee',   name:'قهوه',    dot:'#b07d56' },
 ];
 function applyTheme(id){ document.documentElement.setAttribute('data-theme', id); localStorage.setItem('theme', id); renderThemeSwitch(); }
 function renderThemeSwitch(){
@@ -150,30 +151,64 @@ async function login(){
   } catch(e){ err.textContent = 'خطا در اتصال به سرور'; }
 }
 async function logout(){ await fetch(`${API}/auth.php?action=logout`, opts('GET')); location.reload(); }
+function showAuth(which){
+  ['login','register','forgot'].forEach(v => { const el = document.getElementById('auth-'+v); if (el) el.style.display = (v===which)?'block':'none'; });
+}
+async function register(){
+  const username = document.getElementById('reg-username').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const err = document.getElementById('reg-error'); err.textContent = '';
+  if (username.length < 3 || password.length < 4 || !email.includes('@')){ err.textContent = 'نام کاربری ۳+، رمز ۴+ و ایمیل معتبر لازم است'; return; }
+  try {
+    const r = await fetch(`${API}/auth.php?action=register`, opts('POST', { username, email, password }));
+    if (r.ok){ await init(); }
+    else { const e = await r.json().catch(()=>({})); err.textContent = e.error === 'already_exists' ? 'این نام کاربری یا ایمیل قبلاً ثبت شده' : 'اطلاعات نامعتبر است'; }
+  } catch(e){ err.textContent = 'خطا در اتصال به سرور'; }
+}
+async function forgot(){
+  const email = document.getElementById('forgot-email').value.trim();
+  const msg = document.getElementById('forgot-msg'); msg.style.color = ''; msg.textContent = '';
+  if (!email.includes('@')){ msg.textContent = 'ایمیل معتبر وارد کن'; return; }
+  try {
+    await fetch(`${API}/auth.php?action=forgot`, opts('POST', { email }));
+    msg.style.color = 'var(--accent)'; msg.textContent = 'اگر این ایمیل ثبت شده باشد، رمز جدید ارسال شد. ایمیلت را چک کن.'; }
+  catch(e){ msg.textContent = 'خطا در اتصال به سرور'; }
+}
 
 /* ---------- نمایش ---------- */
+let ME = null;
 async function init(){
   let me;
   try { me = await (await fetch(`${API}/auth.php?action=me`, opts('GET'))).json(); } catch(e){ return; }
   if (!me.logged_in){ showLogin(); return; }
+  ME = me;
   document.getElementById('login-view').style.display = 'none';
   document.getElementById('app-view').style.display = 'block';
   document.getElementById('user-chip').style.display = 'flex';
   document.getElementById('who').textContent = me.username;
+  renderAvatar(document.getElementById('chip-avatar'), me.avatar, me.username);
   loadMatches(); loadLeaderboard();
+}
+function renderAvatar(el, avatar, name){
+  if (!el) return;
+  if (avatar && /^https?:\/\//.test(avatar)) el.innerHTML = `<img src="${avatar}" alt="">`;
+  else el.textContent = avatar || (name ? name[0].toUpperCase() : '👤');
 }
 function showLogin(){
   document.getElementById('login-view').style.display = 'flex';
   document.getElementById('app-view').style.display = 'none';
   document.getElementById('user-chip').style.display = 'none';
+  showAuth('login');
 }
 function switchTab(name){
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
-  ['matches','tournament','stats','leaderboard'].forEach(n => {
+  ['matches','tournament','stats','leaderboard','profile'].forEach(n => {
     const el = document.getElementById('tab-' + n); if (el) el.style.display = (n === name) ? 'block' : 'none';
   });
   if (name === 'tournament') loadTournament();
   if (name === 'stats') loadStats();
+  if (name === 'profile') loadProfile();
 }
 
 async function loadMatches(){
@@ -320,6 +355,43 @@ async function loadStats(){
   const picker = '<div class="stats-picker"><label>📊 آمار: </label><select class="ko-select" onchange="viewStats(this.value)">' + users.map(u => `<option value="${u.id}" ${(+u.id===+d.viewing)?'selected':''}>${u.username}${(+u.id===+d.viewing && d.is_self)?' (خودم)':''}</option>`).join('') + '</select></div>';
   box.innerHTML = picker + '<div class="stats-cards">' + cards.map(c => `<div class="card stat-card ${c.cls}"><div class="stat-val">${c.val}</div><div class="stat-label">${c.label}</div></div>`).join('') + '</div><div class="card stat-chart"><h3>تفکیک ' + faNum(scored) + ' پیش‌بینی امتیازخورده</h3>' + bar('🎯 دقیق', s.exact_count||0, 'bar-exact') + bar('✓ نتیجهٔ درست', s.result_count||0, 'bar-result') + bar('✗ اشتباه', wrong, 'bar-wrong') + '</div><div class="card hist"><h3>تاریخچهٔ پیش‌بینی‌ها (' + faNum(hist.length) + ')</h3>' + (hist.length ? rows : '<p class="muted center">هنوز پیش‌بینی‌ای ثبت نکرده‌ای.</p>') + '</div>';
 }
+
+/* ---------- پروفایل ---------- */
+const AVATARS = ['⚽','🦁','🔥','🐐','👑','🚀','🎯','🦅','🐯','🐉','⭐','🏆','🌟','💪','🧤'];
+let PROFILE_AVATAR = '';
+async function loadProfile(){
+  const box = document.getElementById('profile');
+  box.innerHTML = '<div class="skeleton"></div>';
+  const d = await (await fetch(`${API}/profile.php`, opts('GET'))).json();
+  const p = d.profile || {};
+  PROFILE_AVATAR = p.avatar || '';
+  const preview = (PROFILE_AVATAR && /^https?:\/\//.test(PROFILE_AVATAR)) ? `<img src="${PROFILE_AVATAR}" alt="">` : (PROFILE_AVATAR || (p.username ? p.username[0].toUpperCase() : '👤'));
+  const grid = AVATARS.map(a => `<button type="button" class="ava-opt ${a===PROFILE_AVATAR?'active':''}" onclick="pickAvatar('${a}')">${a}</button>`).join('');
+  box.innerHTML = '<div class="card profile"><div class="profile-head"><div class="profile-ava" id="profile-ava">' + preview + '</div><div><h2>' + (p.username||'') + '</h2><p class="muted">پروفایل خود را شخصی‌سازی کن</p></div></div>' + '<label class="fld-label">آواتار</label><div class="ava-grid">' + grid + '</div>' + '<label class="fld-label">یا آدرس تصویر دلخواه (URL)</label><div class="field"><input id="pf-avatar-url" placeholder="https://..." value="' + (/^https?:\/\//.test(PROFILE_AVATAR)?PROFILE_AVATAR:'') + '" oninput="pickAvatar(this.value)"></div>' + '<label class="fld-label">ایمیل</label><div class="field"><input id="pf-email" type="email" placeholder="ایمیل" value="' + (p.email||'') + '"></div>' + '<label class="fld-label">رمز عبور جدید (اختیاری)</label><div class="field"><input id="pf-password" type="password" placeholder="برای تغییر، رمز جدید را وارد کن" autocomplete="new-password"></div>' + '<button class="btn-primary btn-block" onclick="saveProfile()">💾 ذخیرهٔ تغییرات</button><p id="pf-msg" class="error-text"></p></div>';
+}
+function pickAvatar(val){
+  PROFILE_AVATAR = val;
+  const el = document.getElementById('profile-ava');
+  if (el) renderAvatar(el, val, ME && ME.username);
+  document.querySelectorAll('.ava-opt').forEach(b => b.classList.toggle('active', b.textContent === val));
+}
+async function saveProfile(){
+  const email = document.getElementById('pf-email').value.trim();
+  const password = document.getElementById('pf-password').value;
+  const msg = document.getElementById('pf-msg'); msg.style.color = ''; msg.textContent = '';
+  const body = { email, avatar: PROFILE_AVATAR };
+  if (password) body.password = password;
+  const r = await fetch(`${API}/profile.php`, opts('POST', body));
+  if (r.ok){ msg.style.color = 'var(--accent)'; msg.textContent = 'ذخیره شد ✅'; if (ME){ ME.avatar = PROFILE_AVATAR; ME.email = email; } renderAvatar(document.getElementById('chip-avatar'), PROFILE_AVATAR, ME && ME.username); toast('پروفایل به‌روزرسانی شد ✅'); }
+  else { const e = await r.json().catch(()=>({})); msg.textContent = e.error === 'email_taken' ? 'این ایمیل قبلاً استفاده شده' : (e.error === 'invalid_email' ? 'ایمیل نامعتبر است' : 'خطا در ذخیره'); }
+}
+
+/* ---------- دکمهٔ بالا رفتن ---------- */
+function scrollTop(){ window.scrollTo({ top:0, behavior:'smooth' }); }
+window.addEventListener('scroll', () => {
+  const tt = document.getElementById('to-top'); if (tt) tt.classList.toggle('show', window.scrollY > 200);
+  const tb = document.querySelector('.topbar'); if (tb) tb.classList.toggle('scrolled', window.scrollY > 10);
+});
 
 /* ---------- اجرا ---------- */
 renderThemeSwitch();
