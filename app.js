@@ -169,8 +169,11 @@ function showLogin(){
 }
 function switchTab(name){
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
-  document.getElementById('tab-matches').style.display = name === 'matches' ? 'block' : 'none';
-  document.getElementById('tab-leaderboard').style.display = name === 'leaderboard' ? 'block' : 'none';
+  ['matches','tournament','stats','leaderboard'].forEach(n => {
+    const el = document.getElementById('tab-' + n); if (el) el.style.display = (n === name) ? 'block' : 'none';
+  });
+  if (name === 'tournament') loadTournament();
+  if (name === 'stats') loadStats();
 }
 
 async function loadMatches(){
@@ -248,6 +251,73 @@ async function loadLeaderboard(){
   const head = '<div class="lb-row lb-head"><span>رتبه</span><span>کاربر</span><span>امتیاز</span><span>دقیق</span></div>';
   const body = rows.map((r,i) => `<div class="lb-row ${i<3?'top':''}"><span class="rank">${medals[i] || (i+1)}</span><span class="lb-user">${r.username}</span><span class="pts">${(+r.total_points).toLocaleString('fa-IR')}</span><span class="exact">${(+r.exact_count).toLocaleString('fa-IR')}</span></div>`).join('');
   box.innerHTML = `<div class="card lb">${head}${body}</div>`;
+}
+
+/* ---------- پیش‌بینی قهرمانی تورنمنت ---------- */
+let TOURNEY_TEAMS = [];
+async function loadTournament(){
+  const box = document.getElementById('tournament');
+  box.innerHTML = '<div class="skeleton"></div>';
+  const d = await (await fetch(`${API}/tournament.php`, opts('GET'))).json();
+  TOURNEY_TEAMS = d.teams || [];
+  const p = d.prediction || {};
+  const locked = !!d.locked;
+  const teamOpts = (sel) => '<option value="">— انتخاب کن —</option>' +
+    TOURNEY_TEAMS.map(t => `<option value="${t}" ${sel===t?'selected':''}>${teamFa(t)}</option>`).join('');
+  const dl = d.deadline ? fmtDate(d.deadline) : '—';
+  const slots = [
+    { key:'champion', icon:'🥇', label:'قهرمان',      pts:'۵۰' },
+    { key:'runnerup', icon:'🥈', label:'نایب‌قهرمان', pts:'۲۵' },
+    { key:'third',    icon:'🥉', label:'تیم سوم',     pts:'۱۵' },
+  ];
+  box.innerHTML = `<div class="card tourney"><br>    <div class="tourney-head"><br>      <h2>🏆 پیش‌بینی قهرمانی</h2><br>      <p class="muted">سه تیم برتر تورنمنت را حدس بزن — فقط جایگاه دقیق امتیاز می‌گیرد.</p><br>      ${locked ? `<div class="tourney-lock">⛔ مهلت ثبت تمام شده (${dl})</div>`<br>               : `<div class="tourney-deadline">⏳ مهلت ثبت: تا ${dl}</div>`}<br>    </div><br>    ${(p.points != null && +p.points > 0) ? `<div class="tourney-points">امتیاز قهرمانی تو: <b>${faNum(p.points)}</b></div>` : ''}<br>    <div class="tourney-slots"><br>      ${slots.map(s => `<div class="tourney-slot">
+        <div class="slot-rank">${s.icon} ${s.label}<span class="slot-pts">${s.pts} امتیاز</span></div>
+        <select id="tp-${s.key}" class="ko-select" ${locked?'disabled':''}>${teamOpts(p[s.key])}</select>
+      </div>`).join('')}<br>    </div><br>    ${locked ? '' : '<button class="btn-primary btn-block" onclick="saveTournament()">💾 ثبت پیش‌بینی قهرمانی</button>'}<br>  </div>`;
+}
+async function saveTournament(){
+  const champion = document.getElementById('tp-champion').value;
+  const runnerup = document.getElementById('tp-runnerup').value;
+  const third    = document.getElementById('tp-third').value;
+  if (!champion || !runnerup || !third){ toast('هر سه جایگاه را انتخاب کن', false); return; }
+  if (new Set([champion, runnerup, third]).size < 3){ toast('سه تیم باید متفاوت باشند', false); return; }
+  const r = await fetch(`${API}/tournament.php`, opts('POST', { champion, runnerup, third }));
+  if (r.ok){ toast('پیش‌بینی قهرمانی ثبت شد ✅'); }
+  else {
+    const e = await r.json().catch(()=>({}));
+    toast(e.error === 'deadline_passed' ? 'مهلت ثبت قهرمانی تمام شده' : 'خطا در ثبت', false);
+  }
+}
+
+/* ---------- آمار شخصی + تاریخچه ---------- */
+async function loadStats(){
+  const box = document.getElementById('stats');
+  box.innerHTML = '<div class="skeleton"></div>';
+  const d = await (await fetch(`${API}/stats.php`, opts('GET'))).json();
+  const s = d.stats || {}, hist = d.history || [];
+  const scored = s.scored_preds || 0;
+  const wrong = Math.max(0, scored - (s.exact_count||0) - (s.result_count||0));
+  const pct = (n) => scored ? Math.round(n / scored * 100) : 0;
+  const acc = pct((s.exact_count||0) + (s.result_count||0));
+  const cards = [
+    { label:'امتیاز کل',     val:faNum(s.total_points), cls:'stat-primary' },
+    { label:'پیش‌بینی دقیق', val:faNum(s.exact_count),  cls:'' },
+    { label:'نتیجهٔ درست',   val:faNum(s.result_count), cls:'' },
+    { label:'دقت کلی',       val:faNum(acc)+'٪',        cls:'' },
+  ];
+  const bar = (label, n, cls) => `<div class="bar-row"><br>    <span class="bar-label">${label}</span><br>    <div class="bar-track"><div class="bar-fill ${cls}" style="width:${pct(n)}%"></div></div><br>    <span class="bar-val">${faNum(n)} (${faNum(pct(n))}٪)</span></div>`;
+  const rows = hist.map(h => {
+    const fin = h.status === 'FINISHED';
+    let cls = 'pred-pending', mark = '⏳';
+    if (fin){
+      const exact = (+h.pred_home_90===+h.home_score_90 && +h.pred_away_90===+h.away_score_90);
+      const okRes = Math.sign(h.pred_home_90-h.pred_away_90)===Math.sign(h.home_score_90-h.away_score_90);
+      cls = exact ? 'pred-exact' : (okRes ? 'pred-result' : 'pred-wrong');
+      mark = exact ? '🎯' : (okRes ? '✓' : '✗');
+    }
+    return `<div class="hist-row ${cls}"><br>      <span class="hist-stage">${STAGE_FA[h.stage]||h.stage}</span><br>      <span class="hist-teams">${teamFa(h.home_team)} <b>${faNum(h.pred_home_90)}−${faNum(h.pred_away_90)}</b> ${teamFa(h.away_team)}</span><br>      <span class="hist-actual">${fin ? `واقعی ${faNum(h.home_score_90)}−${faNum(h.away_score_90)}` : '—'}</span><br>      <span class="hist-mark">${mark}</span><br>      <span class="hist-pts">${fin ? '+'+faNum(h.points) : ''}</span><br>    </div>`;
+  }).join('');
+  box.innerHTML = `<br>    <div class="stats-cards">${cards.map(c => `<div class="card stat-card ${c.cls}"><div class="stat-val">${c.val}</div><div class="stat-label">${c.label}</div></div>`).join('')}</div><br>    <div class="card stat-chart"><br>      <h3>تفکیک ${faNum(scored)} پیش‌بینی امتیازخورده</h3><br>      ${bar('🎯 دقیق', s.exact_count||0, 'bar-exact')}<br>      ${bar('✓ نتیجهٔ درست', s.result_count||0, 'bar-result')}<br>      ${bar('✗ اشتباه', wrong, 'bar-wrong')}<br>    </div><br>    <div class="card hist"><br>      <h3>تاریخچهٔ پیش‌بینی‌ها (${faNum(hist.length)})</h3><br>      ${hist.length ? rows : '<p class="muted center">هنوز پیش‌بینی‌ای ثبت نکرده‌ای.</p>'}<br>    </div>`;
 }
 
 /* ---------- اجرا ---------- */
