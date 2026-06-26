@@ -1,5 +1,5 @@
 * { box-sizing:border-box; margin:0; padding:0; }
-html, body { max-width:100%; overflow-x:hidden; }
+html, body { max-width:100%; }
 :root { --radius:18px; --radius-sm:12px; --maxw:880px; --shadow:0 10px 30px rgba(0,0,0,.25); --t:.25s ease; --select-bg:#1a2433; }
 /* ===== تم‌ها ===== */
 [data-theme=stadium] { --bg1:#0a2a1a; --bg2:#06140d; --card:rgba(255,255,255,.06); --card-brd:rgba(255,255,255,.12); --text:#eafff3; --muted:#9bdcb8; --primary:#22c55e; --primary2:#16a34a; --accent:#a3e635; --orb1:#16a34a; --orb2:#0ea5e9; --orb3:#84cc16; }
