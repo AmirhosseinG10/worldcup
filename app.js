@@ -10,12 +10,16 @@ const THEMES = [
   { id:'coffee',   name:'قهوه',    dot:'#b07d56' },
 ];
 function applyTheme(id){ document.documentElement.setAttribute('data-theme', id); localStorage.setItem('theme', id); renderThemeSwitch(); }
+function availableThemes(){ return THEMES.filter(t => t.id !== 'coffee' || (ME && ME.username === 'SayeTheCat')); }
 function renderThemeSwitch(){
   const cur = document.documentElement.getAttribute('data-theme') || 'stadium';
-  document.getElementById('theme-switch').innerHTML = THEMES.map(t =>
+  document.getElementById('theme-switch').innerHTML = availableThemes().map(t =>
     `<button class="swatch ${t.id===cur?'active':''}" title="${t.name}" style="--dot:${t.dot}" onclick="applyTheme('${t.id}')"></button>`
   ).join('');
 }
+function toggleMenu(which){ ['settings','profile'].forEach(id => { const el = document.getElementById('menu-' + id); if (el) el.classList.toggle('open', id === which ? !el.classList.contains('open') : false); }); }
+function closeMenus(){ document.querySelectorAll('.popover.open').forEach(p => p.classList.remove('open')); }
+document.addEventListener('click', (e) => { if (!e.target.closest('.menu-wrap')) closeMenus(); });
 
 /* ---------- نام فارسی + پرچم کشورها ---------- */
 const COUNTRIES = {
@@ -186,12 +190,14 @@ async function init(){
   ME = me;
   document.getElementById('login-view').style.display = 'none';
   document.getElementById('app-view').style.display = 'block';
-  document.getElementById('user-chip').style.display = 'flex';
+  document.getElementById('profile-wrap').style.display = 'block';
   document.getElementById('who').textContent = me.username;
-  renderAvatar(document.getElementById('chip-avatar'), me.avatar);
+  renderMyAvatar();
   document.getElementById('main-tabs').style.display = 'flex';
+  if (document.documentElement.getAttribute('data-theme') === 'coffee' && me.username !== 'SayeTheCat') applyTheme('stadium'); else renderThemeSwitch();
   loadMatches(); loadLeaderboard();
 }
+function renderMyAvatar(){ if (!ME) return; renderAvatar(document.getElementById('chip-avatar'), ME.avatar); renderAvatar(document.getElementById('chip-avatar-lg'), ME.avatar); }
 function renderAvatar(el, avatar){
   if (!el) return;
   if (avatar && /^https?:\/\//.test(avatar)) el.innerHTML = `<img src="${avatar}" alt="">`;
@@ -200,8 +206,9 @@ function renderAvatar(el, avatar){
 function showLogin(){
   document.getElementById('login-view').style.display = 'flex';
   document.getElementById('app-view').style.display = 'none';
-  document.getElementById('user-chip').style.display = 'none';
+  document.getElementById('profile-wrap').style.display = 'none';
   document.getElementById('main-tabs').style.display = 'none';
+  closeMenus();
   showAuth('login');
 }
 function switchTab(name){
@@ -384,7 +391,7 @@ async function saveProfile(){
   const body = { email, avatar: PROFILE_AVATAR };
   if (password) body.password = password;
   const r = await fetch(`${API}/profile.php`, opts('POST', body));
-  if (r.ok){ msg.style.color = 'var(--accent)'; msg.textContent = 'ذخیره شد'; if (ME){ ME.avatar = PROFILE_AVATAR; ME.email = email; } renderAvatar(document.getElementById('chip-avatar'), PROFILE_AVATAR); toast('پروفایل به‌روزرسانی شد'); }
+  if (r.ok){ msg.style.color = 'var(--accent)'; msg.textContent = 'ذخیره شد'; if (ME){ ME.avatar = PROFILE_AVATAR; ME.email = email; } renderMyAvatar(); toast('پروفایل به‌روزرسانی شد'); }
   else { const e = await r.json().catch(()=>({})); msg.textContent = e.error === 'email_taken' ? 'این ایمیل قبلاً استفاده شده' : (e.error === 'invalid_email' ? 'ایمیل نامعتبر است' : 'خطا در ذخیره'); }
 }
 
