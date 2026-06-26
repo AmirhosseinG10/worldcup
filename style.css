@@ -89,6 +89,16 @@ body { font-family:'Vazirmatn','Outfit',Tahoma,sans-serif; color:var(--text); ba
 .my-pred.pred-result .my-pred-label { color:#475569; }
 .my-pred.pred-wrong { background:rgba(244,63,94,.2); border-color:#fb7185; color:#fecdd3; }
 .my-pred.pred-wrong .my-pred-label { color:#fda4af; }
+/* پیش‌بینی مرحلهٔ حذفی */
+.ko-pred { margin-top:12px; padding:12px; border-radius:var(--radius-sm); border:1px dashed var(--card-brd); background:rgba(255,255,255,.03); display:flex; flex-direction:column; gap:9px; }
+.ko-hint { font-size:12px; font-weight:700; color:var(--accent); text-align:center; }
+.ko-row { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.ko-label { font-size:13px; color:var(--muted); font-weight:600; }
+.ko-score { display:flex; align-items:center; gap:6px; }
+.ko-score input { width:40px; height:38px; text-align:center; font-size:16px; font-weight:800; border-radius:10px; border:1px solid var(--card-brd); background:rgba(255,255,255,.05); color:var(--text); outline:none; }
+.ko-score input:focus { border-color:var(--primary); }
+.ko-select { font:inherit; font-weight:600; padding:7px 10px; border-radius:10px; border:1px solid var(--card-brd); background:var(--card); color:var(--text); outline:none; cursor:pointer; }
+.ko-select:focus { border-color:var(--primary); }
 /* جدول رده‌بندی */
 .lb { padding:8px; overflow:hidden; }
 .lb-row { display:grid; grid-template-columns:48px 1fr 80px 60px; align-items:center; padding:13px 14px; }
