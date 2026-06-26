@@ -116,7 +116,7 @@ function team(name, crest){
   let flag;
   if (crest) flag = `<img class="flag" loading="lazy" src="${crest}" alt="">`;            // پرچم مستقیم از API (مطمئن‌ترین)
   else if (c) flag = `<img class="flag" loading="lazy" src="https://flagcdn.com/w40/${c.code}.png" srcset="https://flagcdn.com/w80/${c.code}.png 2x" alt="">`; // جایگزین
-  else flag = `<span class="flag flag-unknown">🏳️</span>`;
+  else flag = `<span class="flag flag-unknown"><i class="bi bi-flag"></i></span>`;
   return `<span class="team">${flag}<span class="team-name">${label}</span></span>`;
 }
 function teamFa(name){ const c = findCountry(name); return c ? c.fa : (name || '؟'); }
@@ -130,7 +130,8 @@ const FA_DIGITS = '۰۱۲۳۴۵۶۷۸۹';
 function faNum(n){ return String(n ?? '').replace(/\d/g, d => FA_DIGITS[d]); }
 function toast(msg, ok=true){
   const el = document.getElementById('toast');
-  el.textContent = msg; el.className = 'toast show ' + (ok ? 'ok' : 'err');
+  el.innerHTML = `<i class="bi ${ok ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'}"></i><span>${msg}</span>`;
+  el.className = 'toast show ' + (ok ? 'ok' : 'err');
   setTimeout(() => el.className = 'toast', 2600);
 }
 function fmtDate(s){
@@ -187,18 +188,20 @@ async function init(){
   document.getElementById('app-view').style.display = 'block';
   document.getElementById('user-chip').style.display = 'flex';
   document.getElementById('who').textContent = me.username;
-  renderAvatar(document.getElementById('chip-avatar'), me.avatar, me.username);
+  renderAvatar(document.getElementById('chip-avatar'), me.avatar);
+  document.getElementById('main-tabs').style.display = 'flex';
   loadMatches(); loadLeaderboard();
 }
-function renderAvatar(el, avatar, name){
+function renderAvatar(el, avatar){
   if (!el) return;
   if (avatar && /^https?:\/\//.test(avatar)) el.innerHTML = `<img src="${avatar}" alt="">`;
-  else el.textContent = avatar || (name ? name[0].toUpperCase() : '👤');
+  else el.innerHTML = `<i class="bi ${avatar && avatar.indexOf('bi-') === 0 ? avatar : 'bi-person-fill'}"></i>`;
 }
 function showLogin(){
   document.getElementById('login-view').style.display = 'flex';
   document.getElementById('app-view').style.display = 'none';
   document.getElementById('user-chip').style.display = 'none';
+  document.getElementById('main-tabs').style.display = 'none';
   showAuth('login');
 }
 function switchTab(name){
@@ -253,7 +256,7 @@ async function loadMatches(){
       ${koInputs}
       ${myPred}
       <div class="match-foot">
-        ${finished ? '<span class="tag tag-done">پایان‌یافته</span>' : locked ? '<span class="tag tag-locked">⛔ مهلت تمام شد</span>' : `<button class="btn-primary btn-sm" onclick="predict(${m.id})">ثبت پیش‌بینی</button>`}
+        ${finished ? '<span class="tag tag-done">پایان‌یافته</span>' : locked ? '<span class="tag tag-locked"><i class="bi bi-lock-fill"></i> مهلت تمام شد</span>' : `<button class="btn-primary btn-sm" onclick="predict(${m.id})">ثبت پیش‌بینی</button>`}
       </div>
     </div>`;
   }).join('');
@@ -270,7 +273,7 @@ async function predict(id){
   const epenh = document.getElementById(`penh-${id}`), epena = document.getElementById(`pena-${id}`);
   if (epenh && epena && epenh.value !== '' && epena.value !== ''){ body.pred_pen_home = +epenh.value; body.pred_pen_away = +epena.value; }
   const r = await fetch(`${API}/predict.php`, opts('POST', body));
-  if (r.ok){ toast('پیش‌بینی ثبت شد ✅'); loadLeaderboard(); }
+  if (r.ok){ toast('پیش‌بینی ثبت شد'); loadLeaderboard(); }
   else {
     const e = await r.json().catch(()=>({}));
     toast(e.error === 'deadline_passed' ? 'مهلت این بازی تمام شده' : 'خطا در ثبت', false);
@@ -282,7 +285,7 @@ async function loadLeaderboard(){
   box.innerHTML = '<div class="skeleton"></div>';
   const data = await (await fetch(`${API}/leaderboard.php`, opts('GET'))).json();
   const rows = data.leaderboard || [];
-  const medals = ['🥇','🥈','🥉'];
+  const medals = ['<i class="bi bi-trophy-fill" style="color:#ffd700"></i>','<i class="bi bi-award-fill" style="color:#c0c0c0"></i>','<i class="bi bi-award-fill" style="color:#cd7f32"></i>'];
   const head = '<div class="lb-row lb-head"><span>رتبه</span><span>کاربر</span><span>امتیاز</span><span>دقیق</span></div>';
   const body = rows.map((r,i) => `<div class="lb-row ${i<3?'top':''}"><span class="rank">${medals[i] || (i+1)}</span><span class="lb-user">${r.username}</span><span class="pts">${(+r.total_points).toLocaleString('fa-IR')}</span><span class="exact">${(+r.exact_count).toLocaleString('fa-IR')}</span></div>`).join('');
   box.innerHTML = `<div class="card lb">${head}${body}</div>`;
@@ -301,11 +304,11 @@ async function loadTournament(){
     TOURNEY_TEAMS.map(t => `<option value="${t}" ${sel===t?'selected':''}>${teamFa(t)}</option>`).join('');
   const dl = d.deadline ? fmtDate(d.deadline) : '—';
   const slots = [
-    { key:'champion', icon:'🥇', label:'قهرمان',      pts:'۵۰' },
-    { key:'runnerup', icon:'🥈', label:'نایب‌قهرمان', pts:'۲۵' },
-    { key:'third',    icon:'🥉', label:'تیم سوم',     pts:'۱۵' },
+    { key:'champion', icon:'<i class="bi bi-trophy-fill" style="color:#ffd700"></i>', label:'قهرمان',      pts:'۵۰' },
+    { key:'runnerup', icon:'<i class="bi bi-award-fill" style="color:#c0c0c0"></i>', label:'نایب‌قهرمان', pts:'۲۵' },
+    { key:'third',    icon:'<i class="bi bi-award-fill" style="color:#cd7f32"></i>', label:'تیم سوم',     pts:'۱۵' },
   ];
-  box.innerHTML = '<div class="card tourney"><div class="tourney-head"><h2>🏆 پیش‌بینی قهرمانی</h2><p class="muted">سه تیم برتر تورنمنت را حدس بزن — فقط جایگاه دقیق امتیاز می‌گیرد.</p>' + (locked ? `<div class="tourney-lock">⛔ مهلت ثبت تمام شده (${dl})</div>` : `<div class="tourney-deadline">⏳ مهلت ثبت: تا ${dl}</div>`) + '</div>' + ((p.points != null && +p.points > 0) ? `<div class="tourney-points">امتیاز قهرمانی تو: <b>${faNum(p.points)}</b></div>` : '') + '<div class="tourney-slots">' + slots.map(s => `<div class="tourney-slot"><div class="slot-rank">${s.icon} ${s.label}<span class="slot-pts">${s.pts} امتیاز</span></div><select id="tp-${s.key}" class="ko-select" ${locked?'disabled':''}>${teamOpts(p[s.key])}</select></div>`).join('') + '</div>' + (locked ? '' : '<button class="btn-primary btn-block" onclick="saveTournament()">💾 ثبت پیش‌بینی قهرمانی</button>') + '</div>';
+  box.innerHTML = '<div class="card tourney"><div class="tourney-head"><h2><i class="bi bi-trophy"></i> پیش‌بینی قهرمانی</h2><p class="muted">سه تیم برتر تورنمنت را حدس بزن — فقط جایگاه دقیق امتیاز می‌گیرد.</p>' + (locked ? `<div class="tourney-lock"><i class="bi bi-lock-fill"></i> مهلت ثبت تمام شده (${dl})</div>` : `<div class="tourney-deadline"><i class="bi bi-hourglass-split"></i> مهلت ثبت: تا ${dl}</div>`) + '</div>' + ((p.points != null && +p.points > 0) ? `<div class="tourney-points">امتیاز قهرمانی تو: <b>${faNum(p.points)}</b></div>` : '') + '<div class="tourney-slots">' + slots.map(s => `<div class="tourney-slot"><div class="slot-rank">${s.icon} ${s.label}<span class="slot-pts">${s.pts} امتیاز</span></div><select id="tp-${s.key}" class="ko-select" ${locked?'disabled':''}>${teamOpts(p[s.key])}</select></div>`).join('') + '</div>' + (locked ? '' : '<button class="btn-primary btn-block" onclick="saveTournament()"><i class="bi bi-save"></i> ثبت پیش‌بینی قهرمانی</button>') + '</div>';
 }
 async function saveTournament(){
   const champion = document.getElementById('tp-champion').value;
@@ -314,7 +317,7 @@ async function saveTournament(){
   if (!champion || !runnerup || !third){ toast('هر سه جایگاه را انتخاب کن', false); return; }
   if (new Set([champion, runnerup, third]).size < 3){ toast('سه تیم باید متفاوت باشند', false); return; }
   const r = await fetch(`${API}/tournament.php`, opts('POST', { champion, runnerup, third }));
-  if (r.ok){ toast('پیش‌بینی قهرمانی ثبت شد ✅'); }
+  if (r.ok){ toast('پیش‌بینی قهرمانی ثبت شد'); }
   else {
     const e = await r.json().catch(()=>({}));
     toast(e.error === 'deadline_passed' ? 'مهلت ثبت قهرمانی تمام شده' : 'خطا در ثبت', false);
@@ -342,22 +345,22 @@ async function loadStats(){
   const bar = (label, n, cls) => `<div class="bar-row"><span class="bar-label">${label}</span><div class="bar-track"><div class="bar-fill ${cls}" style="width:${pct(n)}%"></div></div><span class="bar-val">${faNum(n)} (${faNum(pct(n))}٪)</span></div>`;
   const rows = hist.map(h => {
     const fin = h.status === 'FINISHED';
-    let cls = 'pred-pending', mark = '⏳';
+    let cls = 'pred-pending', mark = '<i class="bi bi-hourglass-split"></i>';
     if (fin){
       const exact = (+h.pred_home_90===+h.home_score_90 && +h.pred_away_90===+h.away_score_90);
       const okRes = Math.sign(h.pred_home_90-h.pred_away_90)===Math.sign(h.home_score_90-h.away_score_90);
       cls = exact ? 'pred-exact' : (okRes ? 'pred-result' : 'pred-wrong');
-      mark = exact ? '🎯' : (okRes ? '✓' : '✗');
+      mark = exact ? '<i class="bi bi-bullseye"></i>' : (okRes ? '<i class="bi bi-check-lg"></i>' : '<i class="bi bi-x-lg"></i>');
     }
     return `<div class="hist-row ${cls}"><span class="hist-stage">${STAGE_FA[h.stage]||h.stage}</span><span class="hist-teams">${teamFa(h.home_team)} <b>${faNum(h.pred_home_90)}−${faNum(h.pred_away_90)}</b> ${teamFa(h.away_team)}</span><span class="hist-actual">${fin ? `واقعی ${faNum(h.home_score_90)}−${faNum(h.away_score_90)}` : '—'}</span><span class="hist-mark">${mark}</span><span class="hist-pts">${fin ? '+'+faNum(h.points) : ''}</span></div>`;
   }).join('');
   const users = d.users || [];
-  const picker = '<div class="stats-picker"><label>📊 آمار: </label><select class="ko-select" onchange="viewStats(this.value)">' + users.map(u => `<option value="${u.id}" ${(+u.id===+d.viewing)?'selected':''}>${u.username}${(+u.id===+d.viewing && d.is_self)?' (خودم)':''}</option>`).join('') + '</select></div>';
-  box.innerHTML = picker + '<div class="stats-cards">' + cards.map(c => `<div class="card stat-card ${c.cls}"><div class="stat-val">${c.val}</div><div class="stat-label">${c.label}</div></div>`).join('') + '</div><div class="card stat-chart"><h3>تفکیک ' + faNum(scored) + ' پیش‌بینی امتیازخورده</h3>' + bar('🎯 دقیق', s.exact_count||0, 'bar-exact') + bar('✓ نتیجهٔ درست', s.result_count||0, 'bar-result') + bar('✗ اشتباه', wrong, 'bar-wrong') + '</div><div class="card hist"><h3>تاریخچهٔ پیش‌بینی‌ها (' + faNum(hist.length) + ')</h3>' + (hist.length ? rows : '<p class="muted center">هنوز پیش‌بینی‌ای ثبت نکرده‌ای.</p>') + '</div>';
+  const picker = '<div class="stats-picker"><label><i class="bi bi-bar-chart-fill"></i> آمار: </label><select class="ko-select" onchange="viewStats(this.value)">' + users.map(u => `<option value="${u.id}" ${(+u.id===+d.viewing)?'selected':''}>${u.username}${(+u.id===+d.viewing && d.is_self)?' (خودم)':''}</option>`).join('') + '</select></div>';
+  box.innerHTML = picker + '<div class="stats-cards">' + cards.map(c => `<div class="card stat-card ${c.cls}"><div class="stat-val">${c.val}</div><div class="stat-label">${c.label}</div></div>`).join('') + '</div><div class="card stat-chart"><h3>تفکیک ' + faNum(scored) + ' پیش‌بینی امتیازخورده</h3>' + bar('<i class="bi bi-bullseye"></i> دقیق', s.exact_count||0, 'bar-exact') + bar('<i class="bi bi-check-lg"></i> نتیجهٔ درست', s.result_count||0, 'bar-result') + bar('<i class="bi bi-x-lg"></i> اشتباه', wrong, 'bar-wrong') + '</div><div class="card hist"><h3>تاریخچهٔ پیش‌بینی‌ها (' + faNum(hist.length) + ')</h3>' + (hist.length ? rows : '<p class="muted center">هنوز پیش‌بینی‌ای ثبت نکرده‌ای.</p>') + '</div>';
 }
 
 /* ---------- پروفایل ---------- */
-const AVATARS = ['⚽','🦁','🔥','🐐','👑','🚀','🎯','🦅','🐯','🐉','⭐','🏆','🌟','💪','🧤'];
+const AVATARS = ['bi-person-fill','bi-emoji-smile-fill','bi-trophy-fill','bi-star-fill','bi-fire','bi-lightning-charge-fill','bi-heart-fill','bi-shield-fill','bi-rocket-takeoff-fill','bi-controller','bi-music-note-beamed','bi-camera-fill','bi-bug-fill','bi-balloon-fill','bi-gem'];
 let PROFILE_AVATAR = '';
 async function loadProfile(){
   const box = document.getElementById('profile');
@@ -365,15 +368,14 @@ async function loadProfile(){
   const d = await (await fetch(`${API}/profile.php`, opts('GET'))).json();
   const p = d.profile || {};
   PROFILE_AVATAR = p.avatar || '';
-  const preview = (PROFILE_AVATAR && /^https?:\/\//.test(PROFILE_AVATAR)) ? `<img src="${PROFILE_AVATAR}" alt="">` : (PROFILE_AVATAR || (p.username ? p.username[0].toUpperCase() : '👤'));
-  const grid = AVATARS.map(a => `<button type="button" class="ava-opt ${a===PROFILE_AVATAR?'active':''}" onclick="pickAvatar('${a}')">${a}</button>`).join('');
-  box.innerHTML = '<div class="card profile"><div class="profile-head"><div class="profile-ava" id="profile-ava">' + preview + '</div><div><h2>' + (p.username||'') + '</h2><p class="muted">پروفایل خود را شخصی‌سازی کن</p></div></div>' + '<label class="fld-label">آواتار</label><div class="ava-grid">' + grid + '</div>' + '<label class="fld-label">یا آدرس تصویر دلخواه (URL)</label><div class="field"><input id="pf-avatar-url" placeholder="https://..." value="' + (/^https?:\/\//.test(PROFILE_AVATAR)?PROFILE_AVATAR:'') + '" oninput="pickAvatar(this.value)"></div>' + '<label class="fld-label">ایمیل</label><div class="field"><input id="pf-email" type="email" placeholder="ایمیل" value="' + (p.email||'') + '"></div>' + '<label class="fld-label">رمز عبور جدید (اختیاری)</label><div class="field"><input id="pf-password" type="password" placeholder="برای تغییر، رمز جدید را وارد کن" autocomplete="new-password"></div>' + '<button class="btn-primary btn-block" onclick="saveProfile()">💾 ذخیرهٔ تغییرات</button><p id="pf-msg" class="error-text"></p></div>';
+  const grid = AVATARS.map(a => `<button type="button" class="ava-opt ${a===PROFILE_AVATAR?'active':''}" data-val="${a}" onclick="pickAvatar('${a}')"><i class="bi ${a}"></i></button>`).join('');
+  box.innerHTML = '<div class="card profile"><i class="bi bi-person-gear profile-corner"></i><div class="profile-head"><div class="profile-ava" id="profile-ava"></div><div><h2>' + (p.username||'') + '</h2><p class="muted">پروفایل خود را شخصی‌سازی کن</p></div></div>' + '<label class="fld-label">آواتار</label><div class="ava-grid">' + grid + '</div>' + '<label class="fld-label">یا آدرس تصویر دلخواه (URL)</label><div class="field"><input id="pf-avatar-url" placeholder="https://..." value="' + (/^https?:\/\//.test(PROFILE_AVATAR)?PROFILE_AVATAR:'') + '" oninput="pickAvatar(this.value)"></div>' + '<label class="fld-label">ایمیل</label><div class="field"><input id="pf-email" type="email" placeholder="ایمیل" value="' + (p.email||'') + '"></div>' + '<label class="fld-label">رمز عبور جدید (اختیاری)</label><div class="field"><input id="pf-password" type="password" placeholder="برای تغییر، رمز جدید را وارد کن" autocomplete="new-password"></div>' + '<button class="btn-primary btn-block" onclick="saveProfile()"><i class="bi bi-save"></i> ذخیرهٔ تغییرات</button><p id="pf-msg" class="error-text"></p></div>';
+  renderAvatar(document.getElementById('profile-ava'), PROFILE_AVATAR);
 }
 function pickAvatar(val){
   PROFILE_AVATAR = val;
-  const el = document.getElementById('profile-ava');
-  if (el) renderAvatar(el, val, ME && ME.username);
-  document.querySelectorAll('.ava-opt').forEach(b => b.classList.toggle('active', b.textContent === val));
+  renderAvatar(document.getElementById('profile-ava'), val);
+  document.querySelectorAll('.ava-opt').forEach(b => b.classList.toggle('active', b.dataset.val === val));
 }
 async function saveProfile(){
   const email = document.getElementById('pf-email').value.trim();
@@ -382,7 +384,7 @@ async function saveProfile(){
   const body = { email, avatar: PROFILE_AVATAR };
   if (password) body.password = password;
   const r = await fetch(`${API}/profile.php`, opts('POST', body));
-  if (r.ok){ msg.style.color = 'var(--accent)'; msg.textContent = 'ذخیره شد ✅'; if (ME){ ME.avatar = PROFILE_AVATAR; ME.email = email; } renderAvatar(document.getElementById('chip-avatar'), PROFILE_AVATAR, ME && ME.username); toast('پروفایل به‌روزرسانی شد ✅'); }
+  if (r.ok){ msg.style.color = 'var(--accent)'; msg.textContent = 'ذخیره شد'; if (ME){ ME.avatar = PROFILE_AVATAR; ME.email = email; } renderAvatar(document.getElementById('chip-avatar'), PROFILE_AVATAR); toast('پروفایل به‌روزرسانی شد'); }
   else { const e = await r.json().catch(()=>({})); msg.textContent = e.error === 'email_taken' ? 'این ایمیل قبلاً استفاده شده' : (e.error === 'invalid_email' ? 'ایمیل نامعتبر است' : 'خطا در ذخیره'); }
 }
 
@@ -390,7 +392,7 @@ async function saveProfile(){
 function scrollTop(){ window.scrollTo({ top:0, behavior:'smooth' }); }
 window.addEventListener('scroll', () => {
   const tt = document.getElementById('to-top'); if (tt) tt.classList.toggle('show', window.scrollY > 200);
-  const tb = document.querySelector('.topbar'); if (tb) tb.classList.toggle('scrolled', window.scrollY > 10);
+  const sh = document.getElementById('site-header'); if (sh) sh.classList.toggle('scrolled', window.scrollY > 10);
 });
 
 /* ---------- اجرا ---------- */
