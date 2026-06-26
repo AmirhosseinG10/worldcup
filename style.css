@@ -6,7 +6,10 @@
 [data-theme=sunset] { --bg1:#2a1030; --bg2:#160617; --card:rgba(255,255,255,.06); --card-brd:rgba(255,170,200,.18); --text:#fff0f5; --muted:#e3a7c2; --primary:#fb7185; --primary2:#f43f5e; --accent:#fb923c; --orb1:#db2777; --orb2:#f97316; --orb3:#9333ea; }
 [data-theme=royal] { --bg1:#1a103a; --bg2:#0c0720; --card:rgba(255,255,255,.06); --card-brd:rgba(180,160,255,.2); --text:#f1ecff; --muted:#b6a8e6; --primary:#a78bfa; --primary2:#8b5cf6; --accent:#c4b5fd; --orb1:#7c3aed; --orb2:#6366f1; --orb3:#d946ef; }
 [data-theme=light] { --bg1:#eef3f8; --bg2:#dde7f0; --card:#ffffff; --card-brd:#e2e8f0; --text:#0f172a; --muted:#64748b; --primary:#0ea5e9; --primary2:#0284c7; --accent:#10b981; --orb1:#bae6fd; --orb2:#bbf7d0; --orb3:#ddd6fe; --shadow:0 10px 30px rgba(2,32,71,.10); }
-body { font-family:'Vazirmatn',Tahoma,sans-serif; color:var(--text); background:linear-gradient(160deg,var(--bg1),var(--bg2)); min-height:100vh; line-height:1.7; overflow-x:hidden; transition:background var(--t),color var(--t); }
+body { font-family:'Vazirmatn','Outfit',Tahoma,sans-serif; color:var(--text); background:linear-gradient(160deg,var(--bg1),var(--bg2)); min-height:100vh; line-height:1.7; overflow-x:hidden; transition:background var(--t),color var(--t); }
+/* فونت لاتین جذاب برای نام‌کاربری‌ها و متن انگلیسی */
+.lb-user, #who, .brand small { font-family:'Outfit','Vazirmatn',Tahoma,sans-serif; font-weight:600; letter-spacing:.2px; }
+.score-final, .badge-x, .lb-row .rank, .lb-row .pts, .vs input { font-feature-settings:'tnum'; }
 /* حباب‌های پس‌زمینه */
 .bg-orbs { position:fixed; inset:0; z-index:-1; overflow:hidden; filter:blur(60px); opacity:.55; }
 .bg-orbs span { position:absolute; width:340px; height:340px; border-radius:50%; }
