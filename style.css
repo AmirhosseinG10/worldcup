@@ -116,4 +116,43 @@ body { font-family:'Vazirmatn','Outfit',Tahoma,sans-serif; color:var(--text); ba
 .toast.err { border-color:#fb7185; }
 .muted { color:var(--muted); }
 .center { text-align:center; padding:30px; }
-@media (max-width:520px) { .brand h1 { font-size:17px; } .matches-grid { grid-template-columns:1fr; } }
+/* تورنمنت (فاز ۳) */
+.tourney { padding:24px; max-width:560px; margin:0 auto; }
+.tourney-head { text-align:center; margin-bottom:18px; }
+.tourney-head h2 { font-size:20px; }
+.tourney-deadline { margin-top:10px; font-size:13px; font-weight:700; color:var(--accent); }
+.tourney-lock { margin-top:10px; font-size:13px; font-weight:700; color:#fb7185; }
+.tourney-points { text-align:center; margin-bottom:16px; padding:10px; border-radius:var(--radius-sm); background:color-mix(in srgb,var(--primary) 14%,transparent); border:1px solid var(--card-brd); font-weight:700; }
+.tourney-points b { color:var(--accent); font-size:18px; }
+.tourney-slots { display:flex; flex-direction:column; gap:14px; margin-bottom:20px; }
+.tourney-slot { display:flex; flex-direction:column; gap:8px; }
+.slot-rank { font-weight:800; font-size:15px; }
+.slot-pts { font-size:12px; font-weight:600; color:var(--muted); margin-inline-start:8px; }
+.tourney-slot .ko-select { width:100%; padding:12px 14px; font-size:15px; }
+/* آمار (فاز ۳) */
+.stats-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:14px; margin-bottom:16px; }
+.stat-card { padding:18px; text-align:center; }
+.stat-val { font-size:28px; font-weight:800; color:var(--accent); }
+.stat-label { font-size:13px; color:var(--muted); margin-top:4px; }
+.stat-card.stat-primary .stat-val { color:var(--primary); }
+.stat-chart, .hist { padding:20px; margin-bottom:16px; }
+.stat-chart h3, .hist h3 { font-size:16px; margin-bottom:14px; }
+.bar-row { display:grid; grid-template-columns:120px 1fr 110px; align-items:center; gap:10px; margin:9px 0; }
+.bar-label { font-size:13px; font-weight:700; }
+.bar-track { height:14px; background:rgba(255,255,255,.07); border-radius:999px; overflow:hidden; }
+.bar-fill { height:100%; border-radius:999px; transition:width .6s ease; }
+.bar-fill.bar-exact { background:#22c55e; }
+.bar-fill.bar-result { background:#cbd5e1; }
+.bar-fill.bar-wrong { background:#fb7185; }
+.bar-val { font-size:12px; color:var(--muted); text-align:end; font-weight:600; }
+.hist-row { display:grid; grid-template-columns:84px 1fr auto auto auto; align-items:center; gap:10px; padding:10px 12px; border-radius:var(--radius-sm); margin-bottom:8px; border:1px solid var(--card-brd); background:rgba(255,255,255,.03); }
+.hist-stage { font-size:11px; font-weight:700; color:var(--muted); }
+.hist-teams { font-size:13px; }
+.hist-teams b { color:var(--accent); }
+.hist-actual { font-size:12px; color:var(--muted); }
+.hist-mark { font-size:16px; }
+.hist-pts { font-weight:800; color:var(--accent); font-size:13px; }
+.hist-row.pred-exact { border-color:#22c55e; background:rgba(34,197,94,.12); }
+.hist-row.pred-result { border-color:#cbd5e1; background:rgba(203,213,225,.1); }
+.hist-row.pred-wrong { border-color:#fb7185; background:rgba(244,63,94,.1); }
+@media (max-width:520px) { .brand h1 { font-size:17px; } .matches-grid { grid-template-columns:1fr; } .bar-row { grid-template-columns:70px 1fr 78px; } .hist-row { grid-template-columns:1fr auto auto; } .hist-actual { display:none; } }
