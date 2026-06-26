@@ -270,10 +270,7 @@ async function loadTournament(){
     { key:'runnerup', icon:'🥈', label:'نایب‌قهرمان', pts:'۲۵' },
     { key:'third',    icon:'🥉', label:'تیم سوم',     pts:'۱۵' },
   ];
-  box.innerHTML = `<div class="card tourney"><br>    <div class="tourney-head"><br>      <h2>🏆 پیش‌بینی قهرمانی</h2><br>      <p class="muted">سه تیم برتر تورنمنت را حدس بزن — فقط جایگاه دقیق امتیاز می‌گیرد.</p><br>      ${locked ? `<div class="tourney-lock">⛔ مهلت ثبت تمام شده (${dl})</div>`<br>               : `<div class="tourney-deadline">⏳ مهلت ثبت: تا ${dl}</div>`}<br>    </div><br>    ${(p.points != null && +p.points > 0) ? `<div class="tourney-points">امتیاز قهرمانی تو: <b>${faNum(p.points)}</b></div>` : ''}<br>    <div class="tourney-slots"><br>      ${slots.map(s => `<div class="tourney-slot">
-        <div class="slot-rank">${s.icon} ${s.label}<span class="slot-pts">${s.pts} امتیاز</span></div>
-        <select id="tp-${s.key}" class="ko-select" ${locked?'disabled':''}>${teamOpts(p[s.key])}</select>
-      </div>`).join('')}<br>    </div><br>    ${locked ? '' : '<button class="btn-primary btn-block" onclick="saveTournament()">💾 ثبت پیش‌بینی قهرمانی</button>'}<br>  </div>`;
+  box.innerHTML = '<div class="card tourney"><div class="tourney-head"><h2>🏆 پیش‌بینی قهرمانی</h2><p class="muted">سه تیم برتر تورنمنت را حدس بزن — فقط جایگاه دقیق امتیاز می‌گیرد.</p>' + (locked ? `<div class="tourney-lock">⛔ مهلت ثبت تمام شده (${dl})</div>` : `<div class="tourney-deadline">⏳ مهلت ثبت: تا ${dl}</div>`) + '</div>' + ((p.points != null && +p.points > 0) ? `<div class="tourney-points">امتیاز قهرمانی تو: <b>${faNum(p.points)}</b></div>` : '') + '<div class="tourney-slots">' + slots.map(s => `<div class="tourney-slot"><div class="slot-rank">${s.icon} ${s.label}<span class="slot-pts">${s.pts} امتیاز</span></div><select id="tp-${s.key}" class="ko-select" ${locked?'disabled':''}>${teamOpts(p[s.key])}</select></div>`).join('') + '</div>' + (locked ? '' : '<button class="btn-primary btn-block" onclick="saveTournament()">💾 ثبت پیش‌بینی قهرمانی</button>') + '</div>';
 }
 async function saveTournament(){
   const champion = document.getElementById('tp-champion').value;
@@ -305,7 +302,7 @@ async function loadStats(){
     { label:'نتیجهٔ درست',   val:faNum(s.result_count), cls:'' },
     { label:'دقت کلی',       val:faNum(acc)+'٪',        cls:'' },
   ];
-  const bar = (label, n, cls) => `<div class="bar-row"><br>    <span class="bar-label">${label}</span><br>    <div class="bar-track"><div class="bar-fill ${cls}" style="width:${pct(n)}%"></div></div><br>    <span class="bar-val">${faNum(n)} (${faNum(pct(n))}٪)</span></div>`;
+  const bar = (label, n, cls) => `<div class="bar-row"><span class="bar-label">${label}</span><div class="bar-track"><div class="bar-fill ${cls}" style="width:${pct(n)}%"></div></div><span class="bar-val">${faNum(n)} (${faNum(pct(n))}٪)</span></div>`;
   const rows = hist.map(h => {
     const fin = h.status === 'FINISHED';
     let cls = 'pred-pending', mark = '⏳';
@@ -315,9 +312,9 @@ async function loadStats(){
       cls = exact ? 'pred-exact' : (okRes ? 'pred-result' : 'pred-wrong');
       mark = exact ? '🎯' : (okRes ? '✓' : '✗');
     }
-    return `<div class="hist-row ${cls}"><br>      <span class="hist-stage">${STAGE_FA[h.stage]||h.stage}</span><br>      <span class="hist-teams">${teamFa(h.home_team)} <b>${faNum(h.pred_home_90)}−${faNum(h.pred_away_90)}</b> ${teamFa(h.away_team)}</span><br>      <span class="hist-actual">${fin ? `واقعی ${faNum(h.home_score_90)}−${faNum(h.away_score_90)}` : '—'}</span><br>      <span class="hist-mark">${mark}</span><br>      <span class="hist-pts">${fin ? '+'+faNum(h.points) : ''}</span><br>    </div>`;
+    return `<div class="hist-row ${cls}"><span class="hist-stage">${STAGE_FA[h.stage]||h.stage}</span><span class="hist-teams">${teamFa(h.home_team)} <b>${faNum(h.pred_home_90)}−${faNum(h.pred_away_90)}</b> ${teamFa(h.away_team)}</span><span class="hist-actual">${fin ? `واقعی ${faNum(h.home_score_90)}−${faNum(h.away_score_90)}` : '—'}</span><span class="hist-mark">${mark}</span><span class="hist-pts">${fin ? '+'+faNum(h.points) : ''}</span></div>`;
   }).join('');
-  box.innerHTML = `<br>    <div class="stats-cards">${cards.map(c => `<div class="card stat-card ${c.cls}"><div class="stat-val">${c.val}</div><div class="stat-label">${c.label}</div></div>`).join('')}</div><br>    <div class="card stat-chart"><br>      <h3>تفکیک ${faNum(scored)} پیش‌بینی امتیازخورده</h3><br>      ${bar('🎯 دقیق', s.exact_count||0, 'bar-exact')}<br>      ${bar('✓ نتیجهٔ درست', s.result_count||0, 'bar-result')}<br>      ${bar('✗ اشتباه', wrong, 'bar-wrong')}<br>    </div><br>    <div class="card hist"><br>      <h3>تاریخچهٔ پیش‌بینی‌ها (${faNum(hist.length)})</h3><br>      ${hist.length ? rows : '<p class="muted center">هنوز پیش‌بینی‌ای ثبت نکرده‌ای.</p>'}<br>    </div>`;
+  box.innerHTML = '<div class="stats-cards">' + cards.map(c => `<div class="card stat-card ${c.cls}"><div class="stat-val">${c.val}</div><div class="stat-label">${c.label}</div></div>`).join('') + '</div><div class="card stat-chart"><h3>تفکیک ' + faNum(scored) + ' پیش‌بینی امتیازخورده</h3>' + bar('🎯 دقیق', s.exact_count||0, 'bar-exact') + bar('✓ نتیجهٔ درست', s.result_count||0, 'bar-result') + bar('✗ اشتباه', wrong, 'bar-wrong') + '</div><div class="card hist"><h3>تاریخچهٔ پیش‌بینی‌ها (' + faNum(hist.length) + ')</h3>' + (hist.length ? rows : '<p class="muted center">هنوز پیش‌بینی‌ای ثبت نکرده‌ای.</p>') + '</div>';
 }
 
 /* ---------- اجرا ---------- */
