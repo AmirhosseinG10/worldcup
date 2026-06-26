@@ -89,6 +89,7 @@ const COUNTRIES = {
   'northern ireland':{fa:'ایرلند شمالی',code:'gb-nir'}, 'iceland':{fa:'ایسلند',code:'is'},
   'slovakia':{fa:'اسلواکی',code:'sk'}, 'slovenia':{fa:'اسلوونی',code:'si'},
   'bulgaria':{fa:'بلغارستان',code:'bg'}, 'bosnia and herzegovina':{fa:'بوسنی و هرزگوین',code:'ba'},
+  'bosnia herzegovina':{fa:'بوسنی و هرزگوین',code:'ba'}, 'bosnia':{fa:'بوسنی و هرزگوین',code:'ba'}, 'cape verde islands':{fa:'کیپ‌ورد',code:'cv'},
   'north macedonia':{fa:'مقدونیهٔ شمالی',code:'mk'}, 'montenegro':{fa:'مونته‌نگرو',code:'me'},
   'albania':{fa:'آلبانی',code:'al'}, 'kosovo':{fa:'کوزوو',code:'xk'},
   'georgia':{fa:'گرجستان',code:'ge'}, 'armenia':{fa:'ارمنستان',code:'am'},
@@ -102,12 +103,19 @@ const COUNTRIES = {
   'tahiti':{fa:'تاهیتی',code:'pf'}, 'new caledonia':{fa:'کالدونیای جدید',code:'nc'},
 };
 function norm(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\(.*?\)/g,'').replace(/[^a-z ]/g,'').replace(/\s+/g,' ').trim(); }
-function team(name){
-  const c = COUNTRIES[norm(name)];
+function findCountry(name){
+  const n = norm(name);
+  if (COUNTRIES[n]) return COUNTRIES[n];
+  const n2 = n.replace(/\band\b/g,' ').replace(/\s+/g,' ').trim();
+  return COUNTRIES[n2] || null;
+}
+function team(name, crest){
+  const c = findCountry(name);
   const label = c ? c.fa : (name || '؟');
-  const flag = c
-    ? `<img class="flag" loading="lazy" src="https://flagcdn.com/w40/${c.code}.png" srcset="https://flagcdn.com/w80/${c.code}.png 2x" alt="">`
-    : `<span class="flag flag-unknown">🏳️</span>`;
+  let flag;
+  if (crest) flag = `<img class="flag" loading="lazy" src="${crest}" alt="">`;            // پرچم مستقیم از API (مطمئن‌ترین)
+  else if (c) flag = `<img class="flag" loading="lazy" src="https://flagcdn.com/w40/${c.code}.png" srcset="https://flagcdn.com/w80/${c.code}.png 2x" alt="">`; // جایگزین
+  else flag = `<span class="flag flag-unknown">🏳️</span>`;
   return `<span class="team">${flag}<span class="team-name">${label}</span></span>`;
 }
 
@@ -174,6 +182,17 @@ async function loadMatches(){
     const locked = new Date((m.start_time||'').replace(' ','T')) <= now;
     const finished = m.status === 'FINISHED';
     const stageFa = STAGE_FA[m.stage] || m.stage;
+    const hasPred = m.pred_home_90 !== null && m.pred_home_90 !== undefined;
+    let myPred = '';
+    if (hasPred) {
+      let cls = 'pred-pending';
+      if (finished) {
+        const exact = (+m.pred_home_90 === +m.home_score_90 && +m.pred_away_90 === +m.away_score_90);
+        const okResult = Math.sign(m.pred_home_90 - m.pred_away_90) === Math.sign(m.home_score_90 - m.away_score_90);
+        cls = exact ? 'pred-exact' : (okResult ? 'pred-result' : 'pred-wrong');
+      }
+      myPred = `<div class="my-pred ${cls}"><span class="my-pred-label">پیش‌بینی تو</span><b>${faNum(m.pred_home_90)} − ${faNum(m.pred_away_90)}</b></div>`;
+    }
     return `<div class="card match ${locked?'locked':''}">
       <div class="match-head">
         <span class="badge">${stageFa}</span>
@@ -181,14 +200,15 @@ async function loadMatches(){
         <span class="match-time">${fmtDate(m.start_time)}</span>
       </div>
       <div class="match-body">
-        <div class="side">${team(m.home_team)}</div>
+        <div class="side">${team(m.home_team, m.home_crest)}</div>
         <div class="vs">
           ${finished
             ? `<span class="score-final">${faNum(m.home_score_90)} − ${faNum(m.away_score_90)}</span>`
             : `<input type="number" min="0" inputmode="numeric" id="h-${m.id}" ${locked?'disabled':''} placeholder="-"><span class="dash">−</span><input type="number" min="0" inputmode="numeric" id="a-${m.id}" ${locked?'disabled':''} placeholder="-">`}
         </div>
-        <div class="side side-away">${team(m.away_team)}</div>
+        <div class="side side-away">${team(m.away_team, m.away_crest)}</div>
       </div>
+      ${myPred}
       <div class="match-foot">
         ${finished ? '<span class="tag tag-done">پایان‌یافته</span>' : locked ? '<span class="tag tag-locked">⛔ مهلت تمام شد</span>' : `<button class="btn-primary btn-sm" onclick="predict(${m.id})">ثبت پیش‌بینی</button>`}
       </div>
