@@ -287,10 +287,12 @@ async function saveTournament(){
 }
 
 /* ---------- آمار شخصی + تاریخچه ---------- */
+let STATS_TARGET = null; // null = آمار خودم؛ در غیر این صورت user_id کاربر انتخاب‌شده
+function viewStats(id){ STATS_TARGET = id ? +id : null; loadStats(); }
 async function loadStats(){
   const box = document.getElementById('stats');
   box.innerHTML = '<div class="skeleton"></div>';
-  const d = await (await fetch(`${API}/stats.php`, opts('GET'))).json();
+  const d = await (await fetch(`${API}/stats.php` + (STATS_TARGET ? `?user_id=${STATS_TARGET}` : ''), opts('GET'))).json();
   const s = d.stats || {}, hist = d.history || [];
   const scored = s.scored_preds || 0;
   const wrong = Math.max(0, scored - (s.exact_count||0) - (s.result_count||0));
@@ -314,7 +316,9 @@ async function loadStats(){
     }
     return `<div class="hist-row ${cls}"><span class="hist-stage">${STAGE_FA[h.stage]||h.stage}</span><span class="hist-teams">${teamFa(h.home_team)} <b>${faNum(h.pred_home_90)}−${faNum(h.pred_away_90)}</b> ${teamFa(h.away_team)}</span><span class="hist-actual">${fin ? `واقعی ${faNum(h.home_score_90)}−${faNum(h.away_score_90)}` : '—'}</span><span class="hist-mark">${mark}</span><span class="hist-pts">${fin ? '+'+faNum(h.points) : ''}</span></div>`;
   }).join('');
-  box.innerHTML = '<div class="stats-cards">' + cards.map(c => `<div class="card stat-card ${c.cls}"><div class="stat-val">${c.val}</div><div class="stat-label">${c.label}</div></div>`).join('') + '</div><div class="card stat-chart"><h3>تفکیک ' + faNum(scored) + ' پیش‌بینی امتیازخورده</h3>' + bar('🎯 دقیق', s.exact_count||0, 'bar-exact') + bar('✓ نتیجهٔ درست', s.result_count||0, 'bar-result') + bar('✗ اشتباه', wrong, 'bar-wrong') + '</div><div class="card hist"><h3>تاریخچهٔ پیش‌بینی‌ها (' + faNum(hist.length) + ')</h3>' + (hist.length ? rows : '<p class="muted center">هنوز پیش‌بینی‌ای ثبت نکرده‌ای.</p>') + '</div>';
+  const users = d.users || [];
+  const picker = '<div class="stats-picker"><label>📊 آمار: </label><select class="ko-select" onchange="viewStats(this.value)">' + users.map(u => `<option value="${u.id}" ${(+u.id===+d.viewing)?'selected':''}>${u.username}${(+u.id===+d.viewing && d.is_self)?' (خودم)':''}</option>`).join('') + '</select></div>';
+  box.innerHTML = picker + '<div class="stats-cards">' + cards.map(c => `<div class="card stat-card ${c.cls}"><div class="stat-val">${c.val}</div><div class="stat-label">${c.label}</div></div>`).join('') + '</div><div class="card stat-chart"><h3>تفکیک ' + faNum(scored) + ' پیش‌بینی امتیازخورده</h3>' + bar('🎯 دقیق', s.exact_count||0, 'bar-exact') + bar('✓ نتیجهٔ درست', s.result_count||0, 'bar-result') + bar('✗ اشتباه', wrong, 'bar-wrong') + '</div><div class="card hist"><h3>تاریخچهٔ پیش‌بینی‌ها (' + faNum(hist.length) + ')</h3>' + (hist.length ? rows : '<p class="muted center">هنوز پیش‌بینی‌ای ثبت نکرده‌ای.</p>') + '</div>';
 }
 
 /* ---------- اجرا ---------- */
