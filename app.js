@@ -218,7 +218,7 @@ async function init(){
   document.getElementById('main-tabs').style.display = 'flex';
   if (document.documentElement.getAttribute('data-theme') === 'coffee' && me.username !== 'SayeTheCat') applyTheme('stadium'); else renderThemeSwitch();
   renderCompBar();
-  loadMatches(); loadLeaderboard();
+  loadMatches(true); loadLeaderboard();
 }
 function renderMyAvatar(){ if (!ME) return; renderAvatar(document.getElementById('chip-avatar'), ME.avatar); renderAvatar(document.getElementById('chip-avatar-lg'), ME.avatar); }
 function renderAvatar(el, avatar){
@@ -244,7 +244,7 @@ function switchTab(name){
   if (name === 'profile') loadProfile();
 }
 
-async function loadMatches(){
+async function loadMatches(autoScroll=false){
   const box = document.getElementById('matches');
   box.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
   const data = await (await fetch(`${API}/matches.php?competition=${CURRENT_COMP}`, opts('GET'))).json();
@@ -268,7 +268,7 @@ async function loadMatches(){
       }
       myPred = `<div class="my-pred ${cls}"><span class="my-pred-label">پیش‌بینی تو</span><b>${faNum(m.pred_home_90)} − ${faNum(m.pred_away_90)}</b></div>`;
     }
-    return `<div class="card match ${locked?'locked':''}">
+    return `<div class="card match ${locked?'locked':''}" id="match-${m.id}">
       <div class="match-head">
         <span class="badge">${stageFa}</span>
         <span class="badge badge-x">×${faNum(m.multiplier)}</span>
@@ -290,6 +290,16 @@ async function loadMatches(){
       </div>
     </div>`;
   }).join('');
+  if (autoScroll) scrollToNextMatch(data.matches, now);
+}
+
+// بعد از لاگین، خودکار به نزدیک‌ترین بازیِ پیش‌رو (شروع‌نشده) اسکرول می‌کند
+function scrollToNextMatch(matches, now){
+  let next = matches.find(m => m.status !== 'FINISHED' && new Date((m.start_time||'').replace(' ','T')) > now);
+  if (!next) next = matches.find(m => m.status !== 'FINISHED');
+  if (!next) return;
+  const el = document.getElementById('match-' + next.id);
+  if (el) setTimeout(() => el.scrollIntoView({ behavior:'smooth', block:'center' }), 350);
 }
 
 async function predict(id){
@@ -332,7 +342,7 @@ async function loadTournament(){
   const locked = !!d.locked;
   const teamOpts = (sel) => '<option value="">— انتخاب کن —</option>' +
     TOURNEY_TEAMS.map(t => `<option value="${t}" ${sel===t?'selected':''}>${teamFa(t)}</option>`).join('');
-  const dl = d.deadline ? fmtDate(d.deadline) : '—';
+  const dl = d.deadline ? fmtDate(d.deadline) : 'شروع مرحلهٔ حذفی';
   const slots = [
     { key:'champion', icon:'<i class="bi bi-trophy-fill" style="color:#ffd700"></i>', label:'قهرمان',      pts:'۵۰' },
     { key:'runnerup', icon:'<i class="bi bi-award-fill" style="color:#c0c0c0"></i>', label:'نایب‌قهرمان', pts:'۲۵' },
