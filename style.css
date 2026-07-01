@@ -243,6 +243,14 @@ body { font-family:'Vazirmatn','Outfit',Tahoma,sans-serif; color:var(--text); ba
 .hist-row.pred-exact { border-color:#22c55e; background:rgba(34,197,94,.12); }
 .hist-row.pred-result { border-color:#cbd5e1; background:rgba(203,213,225,.1); }
 .hist-row.pred-wrong { border-color:#fb7185; background:rgba(244,63,94,.1); }
+.hist-x { font-size:11px; color:var(--muted); font-weight:600; margin-inline-start:5px; white-space:nowrap; }
+.tourney-picks { padding:20px; margin-bottom:16px; }
+.tourney-picks h3 { font-size:16px; margin-bottom:14px; }
+.tp-list { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.tp-item { display:flex; flex-direction:column; gap:6px; align-items:center; text-align:center; padding:14px 10px; border-radius:var(--radius-sm); border:1px solid var(--card-brd); background:rgba(255,255,255,.03); }
+.tp-rank { font-size:12px; font-weight:700; color:var(--muted); }
+.tp-item b { font-size:15px; }
+@media (max-width:520px){ .tp-list { grid-template-columns:1fr; } }
 /* لینک‌های احراز هویت */
 .auth-links { margin-top:16px; display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; font-size:13px; }
 .auth-links a { color:var(--primary); font-weight:700; cursor:pointer; }
