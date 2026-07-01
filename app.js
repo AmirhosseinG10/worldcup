@@ -256,7 +256,7 @@ async function loadMatches(autoScroll=false){
     const stageFa = STAGE_FA[m.stage] || m.stage;
     const isKO = m.stage !== 'group';
     const homeFa = teamFa(m.home_team), awayFa = teamFa(m.away_team);
-    const koInputs = (isKO && !finished && !locked) ? `<br>      <div class="ko-pred"><br>        <div class="ko-hint">پیش‌بینی مرحلهٔ حذفی (اختیاری)</div><br>        <div class="ko-row"><span class="ko-label">نتیجهٔ ۱۲۰′ (با وقت اضافه)</span><br>          <span class="ko-score"><input type="number" min="0" id="h120-${m.id}" placeholder="-" value="${m.pred_home_120 ?? ''}"><span class="dash">−</span><input type="number" min="0" id="a120-${m.id}" placeholder="-" value="${m.pred_away_120 ?? ''}"></span></div><br>        <div class="ko-row"><span class="ko-label">تیم صعودکننده</span><br>          <select id="adv-${m.id}" class="ko-select"><option value="">—</option><option value="${m.home_team}" ${m.pred_advancing===m.home_team?'selected':''}>${homeFa}</option><option value="${m.away_team}" ${m.pred_advancing===m.away_team?'selected':''}>${awayFa}</option></select></div><br>        <div class="ko-row"><span class="ko-label">نتیجهٔ پنالتی (اگر کشید)</span><br>          <span class="ko-score"><input type="number" min="0" id="penh-${m.id}" placeholder="-" value="${m.pred_pen_home ?? ''}"><span class="dash">−</span><input type="number" min="0" id="pena-${m.id}" placeholder="-" value="${m.pred_pen_away ?? ''}"></span></div><br>      </div>` : '';
+    const koInputs = (isKO && !finished && !locked) ? `<div class="ko-pred" id="kopred-${m.id}" style="display:none"><div class="ko-hint">چون ۹۰′ را مساوی زدی، نتیجهٔ ۱۲۰′ (با وقت اضافه) را هم پیش‌بینی کن 👇</div><div class="ko-row"><span class="ko-label">نتیجهٔ ۱۲۰′</span><span class="ko-score"><input type="number" min="0" id="h120-${m.id}" placeholder="-" value="${m.pred_home_120 ?? ''}" oninput="koToggle(${m.id})"><span class="dash">−</span><input type="number" min="0" id="a120-${m.id}" placeholder="-" value="${m.pred_away_120 ?? ''}" oninput="koToggle(${m.id})"></span></div><div class="ko-row" id="korowpen-${m.id}" style="display:none"><span class="ko-label">نتیجهٔ پنالتی</span><span class="ko-score"><input type="number" min="0" id="penh-${m.id}" placeholder="-" value="${m.pred_pen_home ?? ''}"><span class="dash">−</span><input type="number" min="0" id="pena-${m.id}" placeholder="-" value="${m.pred_pen_away ?? ''}"></span></div></div>` : '';
     const hasPred = m.pred_home_90 !== null && m.pred_home_90 !== undefined;
     let myPred = '';
     if (hasPred) {
@@ -279,7 +279,7 @@ async function loadMatches(autoScroll=false){
         <div class="vs">
           ${finished
             ? `<span class="score-final">${faNum(m.home_score_90)} − ${faNum(m.away_score_90)}</span>`
-            : `<input type="number" min="0" inputmode="numeric" id="h-${m.id}" ${locked?'disabled':''} placeholder="-"><span class="dash">−</span><input type="number" min="0" inputmode="numeric" id="a-${m.id}" ${locked?'disabled':''} placeholder="-">`}
+            : `<input type="number" min="0" inputmode="numeric" id="h-${m.id}" ${locked?'disabled':''} placeholder="-" value="${m.pred_home_90 ?? ''}" oninput="koToggle(${m.id})"><span class="dash">−</span><input type="number" min="0" inputmode="numeric" id="a-${m.id}" ${locked?'disabled':''} placeholder="-" value="${m.pred_away_90 ?? ''}" oninput="koToggle(${m.id})">`}
         </div>
         <div class="side side-away">${team(m.away_team, m.away_crest)}</div>
       </div>
@@ -290,6 +290,7 @@ async function loadMatches(autoScroll=false){
       </div>
     </div>`;
   }).join('');
+  data.matches.forEach(m => { if (m.stage !== 'group' && m.status !== 'FINISHED') koToggle(m.id); });
   if (autoScroll) scrollToNextMatch(data.matches, now);
 }
 
@@ -302,16 +303,38 @@ function scrollToNextMatch(matches, now){
   if (el) setTimeout(() => el.scrollIntoView({ behavior:'smooth', block:'center' }), 350);
 }
 
+// نمایش شرطی ورودی‌های مرحلهٔ حذفی: ۱۲۰′ فقط اگر ۹۰′ مساوی باشد، پنالتی فقط اگر ۱۲۰′ هم مساوی باشد
+function koToggle(id){
+  const box = document.getElementById('kopred-' + id);
+  if (!box) return;
+  const he = document.getElementById('h-' + id), ae = document.getElementById('a-' + id);
+  const h = he ? he.value : '', a = ae ? ae.value : '';
+  const isDraw90 = h !== '' && a !== '' && +h === +a;
+  box.style.display = isDraw90 ? 'flex' : 'none';
+  const penRow = document.getElementById('korowpen-' + id);
+  if (!penRow) return;
+  if (!isDraw90) { penRow.style.display = 'none'; return; }
+  const h120 = (document.getElementById('h120-' + id) || {}).value || '';
+  const a120 = (document.getElementById('a120-' + id) || {}).value || '';
+  penRow.style.display = (h120 !== '' && a120 !== '' && +h120 === +a120) ? 'flex' : 'none';
+}
+
 async function predict(id){
   const h = document.getElementById(`h-${id}`).value;
   const a = document.getElementById(`a-${id}`).value;
   if (h === '' || a === ''){ toast('نتیجهٔ ۹۰ دقیقه را وارد کن', false); return; }
   const body = { match_id:id, pred_home_90:+h, pred_away_90:+a };
-  const e120h = document.getElementById(`h120-${id}`), e120a = document.getElementById(`a120-${id}`);
-  if (e120h && e120a && e120h.value !== '' && e120a.value !== ''){ body.pred_home_120 = +e120h.value; body.pred_away_120 = +e120a.value; }
-  const eAdv = document.getElementById(`adv-${id}`); if (eAdv && eAdv.value) body.pred_advancing = eAdv.value;
-  const epenh = document.getElementById(`penh-${id}`), epena = document.getElementById(`pena-${id}`);
-  if (epenh && epena && epenh.value !== '' && epena.value !== ''){ body.pred_pen_home = +epenh.value; body.pred_pen_away = +epena.value; }
+  // ۱۲۰′ و پنالتی فقط وقتی معنا دارند که کاربر ۹۰′ (و سپس ۱۲۰′) را مساوی زده باشد
+  if (+h === +a){
+    const e120h = document.getElementById(`h120-${id}`), e120a = document.getElementById(`a120-${id}`);
+    if (e120h && e120a && e120h.value !== '' && e120a.value !== ''){
+      body.pred_home_120 = +e120h.value; body.pred_away_120 = +e120a.value;
+      if (+e120h.value === +e120a.value){
+        const epenh = document.getElementById(`penh-${id}`), epena = document.getElementById(`pena-${id}`);
+        if (epenh && epena && epenh.value !== '' && epena.value !== ''){ body.pred_pen_home = +epenh.value; body.pred_pen_away = +epena.value; }
+      }
+    }
+  }
   const r = await fetch(`${API}/predict.php`, opts('POST', body));
   if (r.ok){ toast('پیش‌بینی ثبت شد'); loadLeaderboard(); }
   else {
