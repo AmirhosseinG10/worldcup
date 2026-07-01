@@ -406,6 +406,14 @@ async function loadStats(){
     { label:'دقت کلی',       val:faNum(acc)+'٪',        cls:'' },
   ];
   const bar = (label, n, cls) => `<div class="bar-row"><span class="bar-label">${label}</span><div class="bar-track"><div class="bar-fill ${cls}" style="width:${pct(n)}%"></div></div><span class="bar-val">${faNum(n)} (${faNum(pct(n))}٪)</span></div>`;
+  const t = d.tournament || {};
+  const tourneyCard = (t.champion || t.runnerup || t.third)
+    ? '<div class="card tourney-picks"><h3><i class="bi bi-trophy"></i> پیش‌بینی سه تیم برتر این کاربر</h3><div class="tp-list">'
+      + `<div class="tp-item"><span class="tp-rank"><i class="bi bi-trophy-fill" style="color:#ffd700"></i> قهرمان</span><b>${t.champion ? teamFa(t.champion) : '—'}</b></div>`
+      + `<div class="tp-item"><span class="tp-rank"><i class="bi bi-award-fill" style="color:#c0c0c0"></i> نایب‌قهرمان</span><b>${t.runnerup ? teamFa(t.runnerup) : '—'}</b></div>`
+      + `<div class="tp-item"><span class="tp-rank"><i class="bi bi-award-fill" style="color:#cd7f32"></i> تیم سوم</span><b>${t.third ? teamFa(t.third) : '—'}</b></div>`
+      + '</div></div>'
+    : '';
   const rows = hist.map(h => {
     const fin = h.status === 'FINISHED';
     let cls = 'pred-pending', mark = '<i class="bi bi-hourglass-split"></i>';
@@ -415,11 +423,20 @@ async function loadStats(){
       cls = exact ? 'pred-exact' : (okRes ? 'pred-result' : 'pred-wrong');
       mark = exact ? '<i class="bi bi-bullseye"></i>' : (okRes ? '<i class="bi bi-check-lg"></i>' : '<i class="bi bi-x-lg"></i>');
     }
-    return `<div class="hist-row ${cls}"><span class="hist-stage">${STAGE_FA[h.stage]||h.stage}</span><span class="hist-teams">${teamFa(h.home_team)} <b>${faNum(h.pred_home_90)}−${faNum(h.pred_away_90)}</b> ${teamFa(h.away_team)}</span><span class="hist-actual">${fin ? `واقعی ${faNum(h.home_score_90)}−${faNum(h.away_score_90)}` : '—'}</span><span class="hist-mark">${mark}</span><span class="hist-pts">${fin ? '+'+faNum(h.points) : ''}</span></div>`;
+    let predExtra = '';
+    if (h.pred_home_120 !== null && h.pred_home_120 !== undefined && h.pred_away_120 !== null && h.pred_away_120 !== undefined) predExtra += ` <span class="hist-x">۱۲۰′ ${faNum(h.pred_home_120)}−${faNum(h.pred_away_120)}</span>`;
+    if (h.pred_pen_home !== null && h.pred_pen_home !== undefined && h.pred_pen_away !== null && h.pred_pen_away !== undefined) predExtra += ` <span class="hist-x">پنالتی ${faNum(h.pred_pen_home)}−${faNum(h.pred_pen_away)}</span>`;
+    let actual = '—';
+    if (fin){
+      actual = `واقعی ${faNum(h.home_score_90)}−${faNum(h.away_score_90)}`;
+      if (+h.went_to_et === 1) actual += ` <span class="hist-x">۱۲۰′ ${faNum(h.home_score_120)}−${faNum(h.away_score_120)}</span>`;
+      if (+h.went_to_pens === 1) actual += ` <span class="hist-x">پنالتی ${faNum(h.pen_home)}−${faNum(h.pen_away)}</span>`;
+    }
+    return `<div class="hist-row ${cls}"><span class="hist-stage">${STAGE_FA[h.stage]||h.stage}</span><span class="hist-teams">${teamFa(h.home_team)} <b>${faNum(h.pred_home_90)}−${faNum(h.pred_away_90)}</b> ${teamFa(h.away_team)}${predExtra}</span><span class="hist-actual">${actual}</span><span class="hist-mark">${mark}</span><span class="hist-pts">${fin ? '+'+faNum(h.points) : ''}</span></div>`;
   }).join('');
   const users = d.users || [];
   const picker = '<div class="stats-picker"><label><i class="bi bi-bar-chart-fill"></i> آمار: </label><select class="ko-select" onchange="viewStats(this.value)">' + users.map(u => `<option value="${u.id}" ${(+u.id===+d.viewing)?'selected':''}>${u.username}${(+u.id===+d.viewing && d.is_self)?' (خودم)':''}</option>`).join('') + '</select></div>';
-  box.innerHTML = picker + '<div class="stats-cards">' + cards.map(c => `<div class="card stat-card ${c.cls}"><div class="stat-val">${c.val}</div><div class="stat-label">${c.label}</div></div>`).join('') + '</div><div class="card stat-chart"><h3>تفکیک ' + faNum(scored) + ' پیش‌بینی امتیازخورده</h3>' + bar('<i class="bi bi-bullseye"></i> دقیق', s.exact_count||0, 'bar-exact') + bar('<i class="bi bi-check-lg"></i> نتیجهٔ درست', s.result_count||0, 'bar-result') + bar('<i class="bi bi-x-lg"></i> اشتباه', wrong, 'bar-wrong') + '</div><div class="card hist"><h3>تاریخچهٔ پیش‌بینی‌ها (' + faNum(hist.length) + ')</h3>' + (hist.length ? rows : '<p class="muted center">هنوز پیش‌بینی‌ای ثبت نکرده‌ای.</p>') + '</div>';
+  box.innerHTML = picker + '<div class="stats-cards">' + cards.map(c => `<div class="card stat-card ${c.cls}"><div class="stat-val">${c.val}</div><div class="stat-label">${c.label}</div></div>`).join('') + '</div><div class="card stat-chart"><h3>تفکیک ' + faNum(scored) + ' پیش‌بینی امتیازخورده</h3>' + bar('<i class="bi bi-bullseye"></i> دقیق', s.exact_count||0, 'bar-exact') + bar('<i class="bi bi-check-lg"></i> نتیجهٔ درست', s.result_count||0, 'bar-result') + bar('<i class="bi bi-x-lg"></i> اشتباه', wrong, 'bar-wrong') + '</div>' + tourneyCard + '<div class="card hist"><h3>تاریخچهٔ پیش‌بینی‌ها (' + faNum(hist.length) + ')</h3>' + (hist.length ? rows : '<p class="muted center">هنوز پیش‌بینی‌ای ثبت نکرده‌ای.</p>') + '</div>';
 }
 
 /* ---------- پروفایل ---------- */
